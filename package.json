@@ -1,0 +1,10 @@
+{
+  "name": "loan-origination",
+  "private": true,
+  "workspaces": ["frontend"],
+  "scripts": {
+    "dev": "docker-compose up",
+    "frontend": "cd frontend && npm run dev",
+    "backend": "cd backend && uvicorn app.main:app --reload"
+  }
+}

@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    font-feature-settings: normal;
+    font-variation-settings: normal;
+  }
+
+  body {
+    @apply font-sans text-neutral-900 bg-neutral-100;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Focus visible for keyboard users only */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary-600;
+  }
+
+  /* Skip link for accessibility */
+  .skip-link {
+    @apply absolute left-[-10000px] top-auto w-px h-px overflow-hidden;
+  }
+
+  .skip-link:focus {
+    @apply left-4 top-4 w-auto h-auto overflow-visible;
+    @apply bg-primary-800 text-white px-4 py-2 rounded font-medium z-50;
+  }
+}
+
+@layer components {
+  .page-container {
+    @apply max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-sm border border-neutral-200;
+  }
+
+  .section-header {
+    @apply text-xl font-semibold text-neutral-900;
+  }
+}

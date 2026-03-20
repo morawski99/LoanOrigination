@@ -1,0 +1,195 @@
+/**
+ * LoanOrigination Design System — CSS Tokens
+ * Chase-inspired, modernized for enterprise LOS
+ * WCAG 2.1 AA compliant
+ */
+
+:root {
+  /* ─── Brand Blue Scale ─────────────────────────────────────── */
+  --color-primary-900: #001F5B;   /* deepest navy */
+  --color-primary-800: #003087;   /* Chase dark navy — headers, hero */
+  --color-primary-700: #005EB8;   /* mid blue — secondary buttons, hover */
+  --color-primary-600: #117ACA;   /* Chase primary blue — CTAs, links, active */
+  --color-primary-500: #2E90D1;
+  --color-primary-400: #5AAEE0;
+  --color-primary-300: #87C7EE;
+  --color-primary-200: #B8DDF6;
+  --color-primary-100: #EBF5FC;   /* background tints, info banners */
+
+  /* ─── Semantic Colors ──────────────────────────────────────── */
+  --color-success:       #006B3C;
+  --color-success-light: #E8F5EE;
+  --color-warning:       #E65100;
+  --color-warning-light: #FFF3E0;
+  --color-error:         #C0392B;
+  --color-error-light:   #FDECEA;
+  --color-info:          #117ACA;
+  --color-info-light:    #EBF5FC;
+
+  /* Status badge colors (loan pipeline) */
+  --status-new:               #117ACA;   /* New / Submitted */
+  --status-in-process:        #6B4FBB;   /* In Process */
+  --status-conditional:       #E65100;   /* Conditional Approval */
+  --status-approved:          #006B3C;   /* Approved */
+  --status-suspended:         #FDB813;   /* Suspended */
+  --status-declined:          #C0392B;   /* Declined */
+  --status-withdrawn:         #767676;   /* Withdrawn */
+  --status-funded:            #004D25;   /* Closed / Funded */
+
+  /* ─── Neutral Scale ────────────────────────────────────────── */
+  --color-neutral-900: #1A1A1A;   /* headings, high-emphasis text */
+  --color-neutral-800: #333333;   /* body text, labels */
+  --color-neutral-700: #555555;
+  --color-neutral-600: #767676;   /* secondary text, captions — 4.54:1 on white (AA min) */
+  --color-neutral-500: #999999;
+  --color-neutral-400: #BBBBBB;
+  --color-neutral-300: #E0E0E0;   /* dividers, borders, input outlines */
+  --color-neutral-200: #F0F0F0;
+  --color-neutral-100: #F7F7F7;   /* section backgrounds, alternating rows */
+  --color-neutral-000: #FFFFFF;   /* page backgrounds, card surfaces */
+
+  /* ─── Typography ────────────────────────────────────────────── */
+  --font-family-base:  "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-family-mono:  "JetBrains Mono", "Roboto Mono", "Courier New", monospace;
+
+  --font-size-2xs: 0.6875rem;  /*  11px — legal / footnote */
+  --font-size-xs:  0.75rem;    /*  12px — caption / label */
+  --font-size-sm:  0.875rem;   /*  14px — body small */
+  --font-size-md:  1rem;       /*  16px — body default (prevents iOS zoom in inputs) */
+  --font-size-lg:  1.125rem;   /*  18px — body large */
+  --font-size-xl:  1.25rem;    /*  20px — subsection H4 */
+  --font-size-2xl: 1.5rem;     /*  24px — section heading H3 */
+  --font-size-3xl: 1.75rem;    /*  28px — section heading H3 large */
+  --font-size-4xl: 2rem;       /*  32px — page title H2 */
+  --font-size-5xl: 2.5rem;     /*  40px — display heading H1 */
+  --font-size-6xl: 3rem;       /*  48px — hero display */
+
+  --font-weight-regular:   400;
+  --font-weight-medium:    500;
+  --font-weight-semibold:  600;
+  --font-weight-bold:      700;
+
+  --line-height-tight:   1.15;   /* display headings */
+  --line-height-snug:    1.25;   /* section headings */
+  --line-height-normal:  1.5;    /* body text */
+  --line-height-relaxed: 1.625;  /* long-form content */
+
+  --letter-spacing-tight:  -0.02em;   /* large headings */
+  --letter-spacing-normal:  0;
+  --letter-spacing-wide:    0.02em;   /* buttons, labels, captions */
+
+  /* ─── Spacing (8px base grid) ───────────────────────────────── */
+  --space-1: 0.25rem;   /*  4px — micro / icon padding */
+  --space-2: 0.5rem;    /*  8px — tight element spacing */
+  --space-3: 0.75rem;   /* 12px — form element internal */
+  --space-4: 1rem;      /* 16px — standard gap, small card padding */
+  --space-5: 1.5rem;    /* 24px — card padding, section internals */
+  --space-6: 2rem;      /* 32px — section gaps */
+  --space-7: 3rem;      /* 48px — major section separators */
+  --space-8: 4rem;      /* 64px — page section padding */
+  --space-9: 6rem;      /* 96px — hero sections */
+
+  /* ─── Layout ─────────────────────────────────────────────────── */
+  --max-content-width:    1280px;
+  --sidebar-width:        240px;
+  --sidebar-collapsed:     64px;
+  --header-height:         64px;
+  --dual-pane-left:       420px;  /* loan file nav panel */
+
+  /* Breakpoints (reference — use in JS/media queries) */
+  /* --bp-mobile:  375px  */
+  /* --bp-tablet:  768px  */
+  /* --bp-desktop: 1024px */
+  /* --bp-wide:    1440px */
+
+  /* ─── Border & Radius ────────────────────────────────────────── */
+  --border-color:          var(--color-neutral-300);
+  --border-width:          1px;
+  --border-width-thick:    2px;
+  --border-radius-xs:      2px;
+  --border-radius-sm:      4px;   /* buttons, inputs */
+  --border-radius-md:      8px;   /* cards */
+  --border-radius-lg:     12px;   /* modals, panels */
+  --border-radius-xl:     16px;
+  --border-radius-pill:  999px;   /* badges, tags */
+
+  /* ─── Shadow ─────────────────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.16);
+
+  /* ─── Focus (ADA — WCAG 2.1 AA) ─────────────────────────────── */
+  /* Gold focus ring — maximum contrast against both light and dark surfaces */
+  --focus-ring-color:      #FDB813;
+  --focus-ring:            0 0 0 3px #FDB813;
+  --focus-ring-offset:     2px;
+  --focus-ring-error:      0 0 0 3px rgba(192, 57, 43, 0.45);
+
+  /* ─── Interactive — Buttons ──────────────────────────────────── */
+  --btn-primary-bg:         var(--color-primary-600);    /* #117ACA */
+  --btn-primary-bg-hover:   var(--color-primary-700);    /* #005EB8 */
+  --btn-primary-bg-active:  var(--color-primary-800);    /* #003087 */
+  --btn-primary-text:       #FFFFFF;
+  --btn-min-height:         48px;    /* ADA: minimum touch target */
+  --btn-min-width:          48px;
+  --btn-padding-y:          0.875rem;
+  --btn-padding-x:          1.75rem;
+
+  /* ─── Form Elements ──────────────────────────────────────────── */
+  --input-height:           48px;    /* ADA: minimum touch target */
+  --input-border:           1px solid var(--color-neutral-600);
+  --input-border-focus:     2px solid var(--color-primary-600);
+  --input-border-error:     2px solid var(--color-error);
+  --input-border-radius:    var(--border-radius-sm);
+  --input-padding:          0.75rem 1rem;
+  --input-font-size:        var(--font-size-md);  /* 16px — prevents iOS zoom */
+  --input-bg:               var(--color-neutral-000);
+  --input-bg-disabled:      var(--color-neutral-100);
+
+  /* ─── Cards ──────────────────────────────────────────────────── */
+  --card-bg:             var(--color-neutral-000);
+  --card-border:         1px solid var(--color-neutral-300);
+  --card-border-radius:  var(--border-radius-md);
+  --card-padding:        var(--space-5);
+  --card-shadow:         var(--shadow-sm);
+  --card-shadow-hover:   var(--shadow-lg);
+
+  /* ─── Table ──────────────────────────────────────────────────── */
+  --table-header-bg:       var(--color-primary-800);   /* #003087 */
+  --table-header-text:     #FFFFFF;
+  --table-row-alt:         var(--color-neutral-100);
+  --table-row-hover:       var(--color-primary-100);
+  --table-border:          1px solid var(--color-neutral-300);
+
+  /* ─── Z-index Scale ──────────────────────────────────────────── */
+  --z-base:          0;
+  --z-raised:       10;
+  --z-dropdown:    100;
+  --z-sticky:      200;
+  --z-overlay:     300;
+  --z-modal:       400;
+  --z-notification:500;
+  --z-tooltip:     600;
+
+  /* ─── Motion ─────────────────────────────────────────────────── */
+  --transition-fast:   150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow:   300ms ease;
+}
+
+/* ─── Reduced Motion (ADA — WCAG 2.3.3) ──────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration:   0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration:  0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Dark Mode (future) ──────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  /* Reserved for Phase 3 dark mode support */
+}

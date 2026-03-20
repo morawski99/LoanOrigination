@@ -1,0 +1,79 @@
+version: "3.9"
+
+services:
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      - VITE_API_URL=http://localhost:8000/api/v1
+    depends_on:
+      - backend
+
+  backend:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    command: sh -c "pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/loanorigination
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=change-me-in-production-use-256-bit-random-key
+      - ACCESS_TOKEN_EXPIRE_MINUTES=60
+      - ENVIRONMENT=development
+      - FRONTEND_URL=http://localhost:5173
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=loanorigination
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  celery-worker:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    command: sh -c "pip install -r requirements.txt && celery -A app.workers.celery_app worker --loglevel=info"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/loanorigination
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=change-me-in-production-use-256-bit-random-key
+      - ENVIRONMENT=development
+    depends_on:
+      - redis
+      - postgres
+
+volumes:
+  postgres_data:
+  redis_data:

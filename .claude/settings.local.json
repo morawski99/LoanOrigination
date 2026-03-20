@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.vestasoftware.com)",
+      "WebFetch(domain:www.icemortgagetechnology.com)",
+      "WebFetch(domain:www.chase.com)",
+      "WebFetch(domain:mortgagetech.ice.com)",
+      "WebFetch(domain:www.mismo.org)",
+      "WebFetch(domain:www.fanniemae.com)",
+      "WebFetch(domain:sf.freddiemac.com)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git -C /Users/markmorawski/LoanOrigination status)",
+      "Bash(gh auth:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
