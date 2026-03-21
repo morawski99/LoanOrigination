@@ -70,15 +70,52 @@ export interface Document {
   created_at: string;
 }
 
+export type AUSSystem = "DU" | "LPA";
+
+export type AUSFinding =
+  | "Approve/Eligible"
+  | "Approve/Ineligible"
+  | "Refer"
+  | "Refer/Eligible"
+  | "Refer with Caution"
+  | "Out of Scope"
+  | "Accept"
+  | "Caution"
+  | "Ineligible"
+  | "Error";
+
 export interface AUSResult {
   id: string;
   loan_id: string;
-  system: "DU" | "LPA";
-  recommendation: string;
-  risk_class: string;
-  findings_summary: string;
+  system: AUSSystem;
+  casefile_id: string;
+  submission_number: number;
+  finding: AUSFinding;
+  max_ltv_percent?: number | null;
+  max_cltv_percent?: number | null;
+  reserves_months?: number | null;
+  documentation_type?: string | null;
+  doc_requirements?: string[] | null;
+  recommendations?: string[] | null;
+  findings_summary?: string | null;
+  submitted_by_id?: string | null;
   run_at: string;
-  raw_response?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AUSResultCreatePayload {
+  system: AUSSystem;
+  casefile_id: string;
+  finding: AUSFinding;
+  max_ltv_percent?: number | null;
+  max_cltv_percent?: number | null;
+  reserves_months?: number | null;
+  documentation_type?: string | null;
+  doc_requirements?: string[] | null;
+  recommendations?: string[] | null;
+  findings_summary?: string | null;
+  run_at: string;
 }
 
 export interface LoanListItem {
