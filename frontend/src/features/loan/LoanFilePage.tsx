@@ -7,6 +7,7 @@ import { getLoan } from "@/services/api";
 import type { Loan } from "@/types/loan";
 import ConditionsSection from "./ConditionsSection";
 import AUSResultsSection from "./AUSResultsSection";
+import DocumentsSection from "./DocumentsSection";
 
 type SectionKey =
   | "overview"
@@ -528,7 +529,7 @@ export default function LoanFilePage() {
             <BorrowersSection loan={loan} />
           )}
           {activeSection === "documents" && (
-            <PlaceholderSection title="Documents" />
+            <DocumentsSection loanId={loan.id} />
           )}
           {activeSection === "conditions" && (
             <ConditionsSection loanId={loan.id} />

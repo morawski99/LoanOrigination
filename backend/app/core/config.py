@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     FREDDIE_MAC_API_KEY: Optional[str] = None
     FREDDIE_MAC_API_URL: str = "https://api.freddiemac.com"
 
+    # Local file storage (dev mode — used when AWS creds are not configured)
+    LOCAL_UPLOAD_DIR: str = "./uploads"
+
     # CORS
     FRONTEND_URL: str = "http://localhost:5173"
 

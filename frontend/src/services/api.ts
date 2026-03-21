@@ -492,6 +492,40 @@ export async function getDocumentUploadUrl(
   return response.data;
 }
 
+export async function uploadDocumentFile(
+  loanId: string,
+  documentId: string,
+  file: File,
+  onProgress?: (pct: number) => void
+): Promise<import("@/types/loan").Document> {
+  const form = new FormData();
+  form.append("file", file);
+  const response = await apiClient.post(
+    `/loans/${loanId}/documents/${documentId}/upload`,
+    form,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress: onProgress
+        ? (e) => {
+            if (e.total) onProgress(Math.round((e.loaded / e.total) * 100));
+          }
+        : undefined,
+    }
+  );
+  return response.data;
+}
+
+export function getDocumentFileUrl(loanId: string, documentId: string): string {
+  return `${import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1"}/loans/${loanId}/documents/${documentId}/file`;
+}
+
+export async function deleteDocument(
+  loanId: string,
+  documentId: string
+): Promise<void> {
+  await apiClient.delete(`/loans/${loanId}/documents/${documentId}`);
+}
+
 // ─── Conditions ──────────────────────────────────────────────────────────────
 
 export async function getConditions(loanId: string): Promise<Condition[]> {
