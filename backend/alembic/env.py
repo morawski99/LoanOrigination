@@ -26,6 +26,7 @@ from app.models.loan import Loan  # noqa: E402, F401
 from app.models.borrower import Borrower  # noqa: E402, F401
 from app.models.document import Document  # noqa: E402, F401
 from app.models.audit_log import AuditLog  # noqa: E402, F401
+from app.models.aus_result import AUSResult  # noqa: E402, F401
 
 # Alembic Config object — provides access to values in alembic.ini
 config = context.config
