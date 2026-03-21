@@ -10,6 +10,7 @@ import type {
   AUSResult,
   AUSResultCreatePayload,
 } from "@/types/loan";
+import type { UserResponse } from "@/types/user";
 import type {
   URLAProgress,
   FullBorrower,
@@ -81,6 +82,9 @@ export interface LoansQueryParams {
   skip?: number;
   limit?: number;
   status?: string;
+  loan_type?: string;
+  assigned_lo_id?: string;
+  unassigned_only?: boolean;
   search?: string;
 }
 
@@ -420,6 +424,16 @@ export async function upsertDemographics(
   const response: AxiosResponse<BorrowerDemographics> = await apiClient.put(
     `/loans/${loanId}/borrowers/${borrowerId}/demographics`,
     data
+  );
+  return response.data;
+}
+
+// ─── Users ───────────────────────────────────────────────────────────────────
+
+export async function getAssignableUsers(role?: string): Promise<UserResponse[]> {
+  const response: AxiosResponse<UserResponse[]> = await apiClient.get(
+    "/users/assignable",
+    { params: role ? { role } : undefined }
   );
   return response.data;
 }

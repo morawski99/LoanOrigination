@@ -91,6 +91,10 @@ class LoanListItem(BaseModel):
     property_city: str
     property_state: str
     created_at: datetime
+    # Denormalized fields populated by the list endpoint
+    primary_borrower_name: Optional[str] = None
+    assigned_lo_name: Optional[str] = None
+    days_in_status: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
 
