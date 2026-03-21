@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Optional, List
 from uuid import UUID
 
-from sqlalchemy import String, Numeric, Date, Enum as SAEnum, ForeignKey
+from sqlalchemy import String, Numeric, Date, DateTime, Enum as SAEnum, ForeignKey
 from sqlalchemy import String, JSON
 from sqlalchemy.orm import mapped_column, MappedColumn, relationship, Mapped
 
@@ -117,6 +117,12 @@ class Loan(UUIDMixin, TimestampMixin, Base):
     # MISMO 3.4 structured data (stores full XML-equivalent as JSON)
     mismo_data: MappedColumn[Optional[dict]] = mapped_column(
         JSON,
+        nullable=True,
+    )
+
+    # Tracks when the loan last changed status — used to compute days_in_status
+    status_changed_at: MappedColumn[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
         nullable=True,
     )
 
