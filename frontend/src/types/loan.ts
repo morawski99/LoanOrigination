@@ -122,6 +122,35 @@ export interface Loan {
   documents?: Document[];
 }
 
+export type ConditionType = "PTA" | "PTD" | "PTF";
+export type ConditionStatus = "Open" | "Cleared" | "Waived";
+
+export interface Condition {
+  id: string;
+  loan_id: string;
+  condition_type: ConditionType;
+  status: ConditionStatus;
+  description: string;
+  due_date?: string;
+  assigned_to?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConditionCreatePayload {
+  condition_type: ConditionType;
+  description: string;
+  due_date?: string;
+  assigned_to?: string;
+}
+
+export interface ConditionUpdatePayload {
+  status?: ConditionStatus;
+  description?: string;
+  due_date?: string;
+  assigned_to?: string;
+}
+
 export interface LoanCreatePayload {
   loan_purpose_type: LoanPurposeType;
   loan_type: LoanType;

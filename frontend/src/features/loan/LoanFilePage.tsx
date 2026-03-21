@@ -5,6 +5,7 @@ import { ChevronLeft, FileText, Users, Folder, CheckSquare, BarChart2, FileSigna
 import { Badge } from "@/design-system/components";
 import { getLoan } from "@/services/api";
 import type { Loan } from "@/types/loan";
+import ConditionsSection from "./ConditionsSection";
 
 type SectionKey =
   | "overview"
@@ -529,7 +530,7 @@ export default function LoanFilePage() {
             <PlaceholderSection title="Documents" />
           )}
           {activeSection === "conditions" && (
-            <PlaceholderSection title="Conditions" />
+            <ConditionsSection loanId={loan.id} />
           )}
           {activeSection === "aus" && (
             <PlaceholderSection title="AUS Results" />

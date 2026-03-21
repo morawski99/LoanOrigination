@@ -4,6 +4,9 @@ import type {
   LoanListItem,
   LoanCreatePayload,
   LoanUpdatePayload,
+  Condition,
+  ConditionCreatePayload,
+  ConditionUpdatePayload,
 } from "@/types/loan";
 import type {
   URLAProgress,
@@ -441,6 +444,40 @@ export async function getDocumentUploadUrl(
     }
   );
   return response.data;
+}
+
+// ─── Conditions ──────────────────────────────────────────────────────────────
+
+export async function getConditions(loanId: string): Promise<Condition[]> {
+  const response = await apiClient.get(`/loans/${loanId}/conditions`);
+  return response.data;
+}
+
+export async function createCondition(
+  loanId: string,
+  payload: ConditionCreatePayload
+): Promise<Condition> {
+  const response = await apiClient.post(`/loans/${loanId}/conditions`, payload);
+  return response.data;
+}
+
+export async function updateCondition(
+  loanId: string,
+  conditionId: string,
+  payload: ConditionUpdatePayload
+): Promise<Condition> {
+  const response = await apiClient.patch(
+    `/loans/${loanId}/conditions/${conditionId}`,
+    payload
+  );
+  return response.data;
+}
+
+export async function deleteCondition(
+  loanId: string,
+  conditionId: string
+): Promise<void> {
+  await apiClient.delete(`/loans/${loanId}/conditions/${conditionId}`);
 }
 
 export default apiClient;
