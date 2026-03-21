@@ -79,6 +79,7 @@ class LoanUpdate(BaseModel):
     assigned_underwriter_id: Optional[UUID] = None
     application_received_date: Optional[date] = None
     estimated_close_date: Optional[date] = None
+    mismo_data: Optional[dict] = None
 
 
 class LoanListItem(BaseModel):

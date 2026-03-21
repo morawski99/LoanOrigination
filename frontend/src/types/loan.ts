@@ -207,4 +207,5 @@ export interface LoanUpdatePayload {
   assigned_lo_id?: string;
   assigned_processor_id?: string;
   assigned_underwriter_id?: string;
+  mismo_data?: Record<string, unknown>;
 }

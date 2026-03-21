@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, FileText, Users, Folder, CheckSquare, BarChart2, FileSignature, DollarSign, LayoutDashboard } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ChevronLeft, FileText, Users, Folder, CheckSquare, BarChart2, FileSignature, DollarSign, LayoutDashboard, UserPlus, X } from "lucide-react";
 import { Badge } from "@/design-system/components";
-import { getLoan } from "@/services/api";
+import { getLoan, createBorrower } from "@/services/api";
 import type { Loan } from "@/types/loan";
 import ConditionsSection from "./ConditionsSection";
 import AUSResultsSection from "./AUSResultsSection";
@@ -245,8 +245,40 @@ function OverviewSection({ loan }: { loan: Loan }) {
 
 function BorrowersSection({ loan }: { loan: Loan }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [form, setForm] = useState({ first_name: "", last_name: "", email: "", phone: "" });
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const addCoBorrowerMutation = useMutation({
+    mutationFn: () =>
+      createBorrower(loan.id, { ...form, borrower_classification: "CoBorrower" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["loan", loan.id] });
+      setShowAddModal(false);
+      setForm({ first_name: "", last_name: "", email: "", phone: "" });
+      setFormError(null);
+    },
+    onError: () => {
+      setFormError("Failed to add co-borrower. Please try again.");
+    },
+  });
+
+  const handleAddSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.first_name || !form.last_name || !form.email || !form.phone) {
+      setFormError("All fields are required.");
+      return;
+    }
+    setFormError(null);
+    addCoBorrowerMutation.mutate();
+  };
+
   const primaryBorrower = loan.borrowers.find(
     (b) => b.borrower_classification === "Primary"
+  );
+  const hasCoBorrower = loan.borrowers.some(
+    (b) => b.borrower_classification === "CoBorrower"
   );
 
   if (loan.borrowers.length === 0) {
@@ -272,20 +304,32 @@ function BorrowersSection({ loan }: { loan: Loan }) {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-neutral-900">Borrowers</h2>
-        {primaryBorrower && (
-          <button
-            type="button"
-            onClick={() =>
-              navigate(
-                `/loans/${loan.id}/urla?borrowerId=${primaryBorrower.id}&section=1`
-              )
-            }
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2"
-          >
-            <FileText className="w-4 h-4" aria-hidden="true" />
-            Open Loan Application (URLA)
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {!hasCoBorrower && (
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2"
+            >
+              <UserPlus className="w-4 h-4" aria-hidden="true" />
+              Add Co-Borrower
+            </button>
+          )}
+          {primaryBorrower && (
+            <button
+              type="button"
+              onClick={() =>
+                navigate(
+                  `/loans/${loan.id}/urla?borrowerId=${primaryBorrower.id}&section=1`
+                )
+              }
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2"
+            >
+              <FileText className="w-4 h-4" aria-hidden="true" />
+              Open Loan Application (URLA)
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -352,6 +396,112 @@ function BorrowersSection({ loan }: { loan: Loan }) {
           Application for any borrower. Progress is saved automatically.
         </p>
       </div>
+
+      {/* Add Co-Borrower Modal */}
+      {showAddModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-coborrower-title"
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
+              <h3 id="add-coborrower-title" className="text-lg font-semibold text-neutral-900">
+                Add Co-Borrower
+              </h3>
+              <button
+                type="button"
+                onClick={() => { setShowAddModal(false); setFormError(null); }}
+                className="text-neutral-400 hover:text-neutral-600 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 rounded"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1" htmlFor="cb-first">
+                    First Name <span className="text-error">*</span>
+                  </label>
+                  <input
+                    id="cb-first"
+                    type="text"
+                    value={form.first_name}
+                    onChange={(e) => setForm((f) => ({ ...f, first_name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1" htmlFor="cb-last">
+                    Last Name <span className="text-error">*</span>
+                  </label>
+                  <input
+                    id="cb-last"
+                    type="text"
+                    value={form.last_name}
+                    onChange={(e) => setForm((f) => ({ ...f, last_name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1" htmlFor="cb-email">
+                  Email <span className="text-error">*</span>
+                </label>
+                <input
+                  id="cb-email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1" htmlFor="cb-phone">
+                  Phone <span className="text-error">*</span>
+                </label>
+                <input
+                  id="cb-phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"
+                  required
+                />
+              </div>
+
+              {formError && (
+                <p className="text-sm text-error" role="alert">{formError}</p>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={addCoBorrowerMutation.isPending}
+                  className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-2 disabled:opacity-50"
+                >
+                  {addCoBorrowerMutation.isPending ? "Adding..." : "Add Co-Borrower"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowAddModal(false); setFormError(null); }}
+                  className="px-4 py-2 border border-neutral-300 text-neutral-700 text-sm font-medium rounded-lg hover:bg-neutral-50 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
