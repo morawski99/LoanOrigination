@@ -132,6 +132,23 @@ export async function updateLoan(
   return response.data;
 }
 
+export interface BorrowerCreatePayload {
+  first_name: string;
+  last_name: string;
+  middle_name?: string;
+  email: string;
+  phone: string;
+  borrower_classification?: string;
+}
+
+export async function createBorrower(
+  loanId: string,
+  data: BorrowerCreatePayload
+): Promise<import("@/types/loan").Borrower> {
+  const response = await apiClient.post(`/loans/${loanId}/borrowers`, data);
+  return response.data;
+}
+
 // ─── URLA ────────────────────────────────────────────────────────────────────
 
 export async function getURLAProgress(loanId: string): Promise<URLAProgress> {
