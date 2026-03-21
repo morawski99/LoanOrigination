@@ -4,14 +4,20 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { ChevronRight, ChevronLeft, Home, CheckCircle } from "lucide-react";
+import {
+  ChevronRight,
+  ChevronLeft,
+  Home,
+  CheckCircle,
+  User,
+  FileText,
+} from "lucide-react";
 import { Button, Input } from "@/design-system/components";
-import { createLoan } from "@/services/api";
+import { createLoan, createBorrower } from "@/services/api";
 import { LoanPurposeType, LoanType } from "@/types/loan";
 
-const TOTAL_STEPS = 3;
+// ─── Schemas ─────────────────────────────────────────────────────────────────
 
-// Step 1 schema
 const step1Schema = z.object({
   loan_purpose_type: z.nativeEnum(LoanPurposeType, {
     errorMap: () => ({ message: "Please select a loan purpose" }),
@@ -43,21 +49,73 @@ const step1Schema = z.object({
     .regex(/^\d{5}(-\d{4})?$/, "Enter a valid ZIP code (e.g. 90210)"),
 });
 
+const step2Schema = z.object({
+  first_name: z.string().min(1, "First name is required").max(100),
+  last_name: z.string().min(1, "Last name is required").max(100),
+  middle_name: z.string().max(100).optional(),
+  email: z.string().email("Enter a valid email address"),
+  phone: z
+    .string()
+    .min(7, "Enter a valid phone number")
+    .max(20)
+    .regex(/^[\d\s\-().+]+$/, "Enter a valid phone number"),
+});
+
 type Step1FormData = z.infer<typeof step1Schema>;
+type Step2FormData = z.infer<typeof step2Schema>;
+
+// ─── Constants ───────────────────────────────────────────────────────────────
 
 const PURPOSE_OPTIONS = [
-  { value: LoanPurposeType.PURCHASE, label: "Purchase", description: "Buying a new home" },
-  { value: LoanPurposeType.REFINANCE, label: "Refinance", description: "Refinance existing mortgage" },
-  { value: LoanPurposeType.CASH_OUT_REFINANCE, label: "Cash-Out Refinance", description: "Refinance and take equity out" },
-  { value: LoanPurposeType.CONSTRUCTION_TO_PERMANENT, label: "Construction", description: "Build and finance a new home" },
+  {
+    value: LoanPurposeType.PURCHASE,
+    label: "Purchase",
+    description: "Buying a new home",
+  },
+  {
+    value: LoanPurposeType.REFINANCE,
+    label: "Refinance",
+    description: "Refinance existing mortgage",
+  },
+  {
+    value: LoanPurposeType.CASH_OUT_REFINANCE,
+    label: "Cash-Out Refinance",
+    description: "Refinance and take equity out",
+  },
+  {
+    value: LoanPurposeType.CONSTRUCTION_TO_PERMANENT,
+    label: "Construction",
+    description: "Build and finance a new home",
+  },
 ];
 
 const LOAN_TYPE_OPTIONS = [
-  { value: LoanType.CONVENTIONAL, label: "Conventional", description: "Fannie Mae / Freddie Mac" },
-  { value: LoanType.FHA, label: "FHA", description: "Federal Housing Administration" },
+  {
+    value: LoanType.CONVENTIONAL,
+    label: "Conventional",
+    description: "Fannie Mae / Freddie Mac",
+  },
+  {
+    value: LoanType.FHA,
+    label: "FHA",
+    description: "Federal Housing Administration",
+  },
   { value: LoanType.VA, label: "VA", description: "Veterans Affairs" },
-  { value: LoanType.USDA, label: "USDA", description: "US Dept. of Agriculture" },
+  {
+    value: LoanType.USDA,
+    label: "USDA",
+    description: "US Dept. of Agriculture",
+  },
 ];
+
+const PURPOSE_LABEL: Record<LoanPurposeType, string> = {
+  [LoanPurposeType.PURCHASE]: "Purchase",
+  [LoanPurposeType.REFINANCE]: "Refinance",
+  [LoanPurposeType.CASH_OUT_REFINANCE]: "Cash-Out Refinance",
+  [LoanPurposeType.CONSTRUCTION_TO_PERMANENT]: "Construction",
+};
+
+// ─── Step Indicator ──────────────────────────────────────────────────────────
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
   const steps = ["Loan Info", "Borrower", "Review"];
@@ -89,7 +147,11 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
                 </div>
                 <span
                   className={`text-xs mt-1 font-medium ${
-                    isCurrent ? "text-primary-700" : isCompleted ? "text-primary-600" : "text-neutral-400"
+                    isCurrent
+                      ? "text-primary-700"
+                      : isCompleted
+                      ? "text-primary-600"
+                      : "text-neutral-400"
                   }`}
                 >
                   {label}
@@ -111,17 +173,31 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
   );
 }
 
+// ─── Review Row ──────────────────────────────────────────────────────────────
+
+function ReviewRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between py-2 border-b border-neutral-100 last:border-0 text-sm">
+      <dt className="text-neutral-500">{label}</dt>
+      <dd className="font-medium text-neutral-900 text-right">{value}</dd>
+    </div>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
+
 export default function NewLoanPage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [step1Data, setStep1Data] = useState<Step1FormData | null>(null);
+  const [step2Data, setStep2Data] = useState<Step2FormData | null>(null);
 
+  // Step 1 form
   const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors },
+    register: register1,
+    handleSubmit: handleSubmit1,
+    watch: watch1,
+    formState: { errors: errors1 },
   } = useForm<Step1FormData>({
     resolver: zodResolver(step1Schema),
     defaultValues: {
@@ -134,20 +210,53 @@ export default function NewLoanPage() {
     },
   });
 
-  const selectedPurpose = watch("loan_purpose_type");
-  const selectedLoanType = watch("loan_type");
+  // Step 2 form
+  const {
+    register: register2,
+    handleSubmit: handleSubmit2,
+    formState: { errors: errors2 },
+  } = useForm<Step2FormData>({
+    resolver: zodResolver(step2Schema),
+    defaultValues: {
+      first_name: "",
+      last_name: "",
+      middle_name: "",
+      email: "",
+      phone: "",
+    },
+  });
 
-  const { mutate: submitLoan, isPending, error: mutationError } = useMutation({
-    mutationFn: (data: Step1FormData) =>
-      createLoan({
-        loan_purpose_type: data.loan_purpose_type,
-        loan_type: data.loan_type,
-        loan_amount: data.loan_amount,
-        property_address_line: data.property_address_line,
-        property_city: data.property_city,
-        property_state: data.property_state,
-        property_zip: data.property_zip,
-      }),
+  const selectedPurpose = watch1("loan_purpose_type");
+  const selectedLoanType = watch1("loan_type");
+
+  // Mutation: create loan then borrower sequentially
+  const { mutate: submitForm, isPending, error: mutationError } = useMutation({
+    mutationFn: async ({
+      loan,
+      borrower,
+    }: {
+      loan: Step1FormData;
+      borrower: Step2FormData;
+    }) => {
+      const createdLoan = await createLoan({
+        loan_purpose_type: loan.loan_purpose_type,
+        loan_type: loan.loan_type,
+        loan_amount: loan.loan_amount,
+        property_address_line: loan.property_address_line,
+        property_city: loan.property_city,
+        property_state: loan.property_state,
+        property_zip: loan.property_zip,
+      });
+      await createBorrower(createdLoan.id, {
+        first_name: borrower.first_name,
+        last_name: borrower.last_name,
+        middle_name: borrower.middle_name || undefined,
+        email: borrower.email,
+        phone: borrower.phone,
+        borrower_classification: "Primary",
+      });
+      return createdLoan;
+    },
     onSuccess: (loan) => {
       navigate(`/loans/${loan.id}`);
     },
@@ -157,6 +266,25 @@ export default function NewLoanPage() {
     setStep1Data(data);
     setCurrentStep(2);
   };
+
+  const onStep2Submit = (data: Step2FormData) => {
+    setStep2Data(data);
+    setCurrentStep(3);
+  };
+
+  const onConfirm = () => {
+    if (step1Data && step2Data) {
+      submitForm({ loan: step1Data, borrower: step2Data });
+    }
+  };
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
 
   return (
     <div className="min-h-screen bg-neutral-100">
@@ -182,7 +310,9 @@ export default function NewLoanPage() {
               </button>
             </li>
             <li aria-hidden="true">/</li>
-            <li className="text-neutral-900 font-medium">New Loan Application</li>
+            <li className="text-neutral-900 font-medium">
+              New Loan Application
+            </li>
           </ol>
         </nav>
       </div>
@@ -199,9 +329,9 @@ export default function NewLoanPage() {
 
         <StepIndicator currentStep={currentStep} />
 
-        {/* Step 1: Loan Purpose & Property */}
+        {/* ── Step 1: Loan Info ─────────────────────────────────────────── */}
         {currentStep === 1 && (
-          <form onSubmit={handleSubmit(onStep1Submit)} noValidate>
+          <form onSubmit={handleSubmit1(onStep1Submit)} noValidate>
             <div className="card p-6 space-y-6">
               <h2 className="text-lg font-semibold text-neutral-900">
                 Step 1: Loan Information
@@ -228,22 +358,27 @@ export default function NewLoanPage() {
                       <input
                         type="radio"
                         value={value}
-                        {...register("loan_purpose_type")}
+                        {...register1("loan_purpose_type")}
                         className="mt-0.5 accent-primary-600"
                       />
                       <div>
                         <p className="text-sm font-medium text-neutral-900">
                           {label}
                         </p>
-                        <p className="text-xs text-neutral-500">{description}</p>
+                        <p className="text-xs text-neutral-500">
+                          {description}
+                        </p>
                       </div>
                     </label>
                   ))}
                 </div>
-                {errors.loan_purpose_type && (
-                  <p role="alert" className="text-sm text-error mt-2 flex items-center gap-1">
+                {errors1.loan_purpose_type && (
+                  <p
+                    role="alert"
+                    className="text-sm text-error mt-2 flex items-center gap-1"
+                  >
                     <span aria-hidden="true">⚠</span>
-                    {errors.loan_purpose_type.message}
+                    {errors1.loan_purpose_type.message}
                   </p>
                 )}
               </fieldset>
@@ -269,7 +404,7 @@ export default function NewLoanPage() {
                       <input
                         type="radio"
                         value={value}
-                        {...register("loan_type")}
+                        {...register1("loan_type")}
                         className="sr-only"
                       />
                       <span
@@ -287,10 +422,13 @@ export default function NewLoanPage() {
                     </label>
                   ))}
                 </div>
-                {errors.loan_type && (
-                  <p role="alert" className="text-sm text-error mt-2 flex items-center gap-1">
+                {errors1.loan_type && (
+                  <p
+                    role="alert"
+                    className="text-sm text-error mt-2 flex items-center gap-1"
+                  >
                     <span aria-hidden="true">⚠</span>
-                    {errors.loan_type.message}
+                    {errors1.loan_type.message}
                   </p>
                 )}
               </fieldset>
@@ -305,8 +443,8 @@ export default function NewLoanPage() {
                   required
                   placeholder="e.g. 450000"
                   helperText="Enter the requested loan amount in US dollars"
-                  error={errors.loan_amount?.message}
-                  {...register("loan_amount")}
+                  error={errors1.loan_amount?.message}
+                  {...register1("loan_amount")}
                 />
               </div>
 
@@ -320,8 +458,8 @@ export default function NewLoanPage() {
                   name="property_address_line"
                   required
                   placeholder="e.g. 123 Main Street"
-                  error={errors.property_address_line?.message}
-                  {...register("property_address_line")}
+                  error={errors1.property_address_line?.message}
+                  {...register1("property_address_line")}
                 />
                 <div className="grid grid-cols-6 gap-3">
                   <div className="col-span-3">
@@ -330,8 +468,8 @@ export default function NewLoanPage() {
                       name="property_city"
                       required
                       placeholder="e.g. Columbus"
-                      error={errors.property_city?.message}
-                      {...register("property_city")}
+                      error={errors1.property_city?.message}
+                      {...register1("property_city")}
                     />
                   </div>
                   <div className="col-span-1">
@@ -341,8 +479,8 @@ export default function NewLoanPage() {
                       required
                       placeholder="OH"
                       maxLength={2}
-                      error={errors.property_state?.message}
-                      {...register("property_state")}
+                      error={errors1.property_state?.message}
+                      {...register1("property_state")}
                     />
                   </div>
                   <div className="col-span-2">
@@ -352,8 +490,8 @@ export default function NewLoanPage() {
                       required
                       placeholder="43215"
                       inputMode="numeric"
-                      error={errors.property_zip?.message}
-                      {...register("property_zip")}
+                      error={errors1.property_zip?.message}
+                      {...register1("property_zip")}
                     />
                   </div>
                 </div>
@@ -376,44 +514,192 @@ export default function NewLoanPage() {
           </form>
         )}
 
-        {/* Step 2: Borrower Information (Coming Soon) */}
+        {/* ── Step 2: Primary Borrower ──────────────────────────────────── */}
         {currentStep === 2 && (
-          <div className="card p-8 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-primary-600" />
-            </div>
-            <h2 className="text-lg font-semibold text-neutral-900 mb-2">
-              Step 2: Borrower Information
-            </h2>
-            <p className="text-neutral-600 mb-1">Coming soon</p>
-            <p className="text-sm text-neutral-400 mb-8">
-              This step will collect borrower personal and financial information.
-            </p>
+          <form onSubmit={handleSubmit2(onStep2Submit)} noValidate>
+            <div className="card p-6 space-y-5">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                  <User className="w-5 h-5 text-primary-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-neutral-900">
+                    Step 2: Primary Borrower
+                  </h2>
+                  <p className="text-sm text-neutral-500">
+                    Basic contact info — full URLA details can be completed in the loan file.
+                  </p>
+                </div>
+              </div>
 
-            <div className="flex justify-between max-w-sm mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="First Name"
+                  name="first_name"
+                  required
+                  placeholder="Jane"
+                  autoComplete="given-name"
+                  error={errors2.first_name?.message}
+                  {...register2("first_name")}
+                />
+                <Input
+                  label="Last Name"
+                  name="last_name"
+                  required
+                  placeholder="Smith"
+                  autoComplete="family-name"
+                  error={errors2.last_name?.message}
+                  {...register2("last_name")}
+                />
+              </div>
+
+              <Input
+                label="Middle Name"
+                name="middle_name"
+                placeholder="Optional"
+                autoComplete="additional-name"
+                error={errors2.middle_name?.message}
+                {...register2("middle_name")}
+              />
+
+              <Input
+                label="Email Address"
+                name="email"
+                type="email"
+                required
+                placeholder="jane.smith@email.com"
+                autoComplete="email"
+                error={errors2.email?.message}
+                {...register2("email")}
+              />
+
+              <Input
+                label="Phone Number"
+                name="phone"
+                type="tel"
+                required
+                placeholder="(555) 123-4567"
+                autoComplete="tel"
+                error={errors2.phone?.message}
+                {...register2("phone")}
+              />
+            </div>
+
+            <div className="flex justify-between mt-6">
               <Button
+                type="button"
                 variant="secondary"
                 onClick={() => setCurrentStep(1)}
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+                Back
+              </Button>
+              <Button type="submit" variant="primary" size="md">
+                Review & Create
+                <ChevronRight className="w-4 h-4" aria-hidden="true" />
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {/* ── Step 3: Review & Confirm ──────────────────────────────────── */}
+        {currentStep === 3 && step1Data && step2Data && (
+          <div>
+            <div className="card p-6 space-y-6">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                  <FileText className="w-5 h-5 text-primary-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-neutral-900">
+                    Step 3: Review & Create
+                  </h2>
+                  <p className="text-sm text-neutral-500">
+                    Confirm the details below. A loan number will be auto-generated on creation.
+                  </p>
+                </div>
+              </div>
+
+              {/* Loan summary */}
+              <div>
+                <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-3">
+                  Loan Details
+                </h3>
+                <dl className="divide-y divide-neutral-100">
+                  <ReviewRow
+                    label="Purpose"
+                    value={PURPOSE_LABEL[step1Data.loan_purpose_type]}
+                  />
+                  <ReviewRow label="Loan Type" value={step1Data.loan_type} />
+                  <ReviewRow
+                    label="Loan Amount"
+                    value={formatCurrency(step1Data.loan_amount)}
+                  />
+                  <ReviewRow
+                    label="Property"
+                    value={`${step1Data.property_address_line}, ${step1Data.property_city}, ${step1Data.property_state} ${step1Data.property_zip}`}
+                  />
+                </dl>
+              </div>
+
+              <div className="border-t border-neutral-200 pt-6">
+                <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-3">
+                  Primary Borrower
+                </h3>
+                <dl className="divide-y divide-neutral-100">
+                  <ReviewRow
+                    label="Name"
+                    value={[
+                      step2Data.first_name,
+                      step2Data.middle_name,
+                      step2Data.last_name,
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  />
+                  <ReviewRow label="Email" value={step2Data.email} />
+                  <ReviewRow label="Phone" value={step2Data.phone} />
+                </dl>
+              </div>
+
+              {mutationError && (
+                <div
+                  role="alert"
+                  className="p-3 bg-error/10 border border-error/20 rounded-lg text-sm text-error flex items-start gap-2"
+                >
+                  <span aria-hidden="true" className="mt-0.5">⚠</span>
+                  <span>
+                    {mutationError instanceof Error
+                      ? mutationError.message
+                      : "Something went wrong. Please try again."}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-between mt-6">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setCurrentStep(2)}
+                disabled={isPending}
+              >
+                <ChevronLeft className="w-4 h-4" aria-hidden="true" />
                 Back
               </Button>
               <Button
+                type="button"
                 variant="primary"
+                size="md"
                 isLoading={isPending}
-                onClick={() => step1Data && submitLoan(step1Data)}
+                onClick={onConfirm}
               >
-                Create Loan File
-                <ChevronRight className="w-4 h-4" />
+                {isPending ? "Creating..." : "Create Loan File"}
+                {!isPending && (
+                  <CheckCircle className="w-4 h-4" aria-hidden="true" />
+                )}
               </Button>
             </div>
-
-            {mutationError && (
-              <p role="alert" className="text-error text-sm mt-4 flex items-center justify-center gap-1">
-                <span aria-hidden="true">⚠</span>
-                {String(mutationError instanceof Error ? mutationError.message : mutationError)}
-              </p>
-            )}
           </div>
         )}
       </main>

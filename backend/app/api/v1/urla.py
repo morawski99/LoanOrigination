@@ -29,6 +29,7 @@ from app.schemas.urla import (
     URLAProgress,
     URLASectionStatus,
     FullBorrowerResponse,
+    BorrowerCreate,
     BorrowerPersonalInfoUpdate,
     BorrowerResponse,
     ResidenceCreate,
@@ -223,6 +224,58 @@ async def get_urla_progress(
         return URLAProgress()
 
     return _compute_urla_progress(borrower)
+
+
+# ---------------------------------------------------------------------------
+# Borrower creation
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/{loan_id}/borrowers",
+    response_model=BorrowerResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_borrower(
+    loan_id: UUID,
+    payload: BorrowerCreate,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> BorrowerResponse:
+    """Create a borrower (Primary or CoBorrower) for a loan."""
+    await _get_loan_or_404(loan_id, db)
+
+    borrower = Borrower(
+        loan_id=loan_id,
+        borrower_classification=payload.borrower_classification,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
+        middle_name=payload.middle_name,
+        email=payload.email,
+        phone=payload.phone,
+    )
+    db.add(borrower)
+    await db.flush()
+
+    await _create_audit(
+        db=db,
+        loan_id=loan_id,
+        user_id=current_user.id,
+        action="borrower.created",
+        entity_type="borrower",
+        entity_id=borrower.id,
+        after_value={
+            "first_name": payload.first_name,
+            "last_name": payload.last_name,
+            "email": payload.email,
+            "borrower_classification": payload.borrower_classification,
+        },
+        request=request,
+    )
+
+    await db.commit()
+    await db.refresh(borrower)
+    return BorrowerResponse.model_validate(borrower)
 
 
 # ---------------------------------------------------------------------------
