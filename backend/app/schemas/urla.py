@@ -511,6 +511,19 @@ class DemographicsResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Borrower Create schema
+# ---------------------------------------------------------------------------
+
+class BorrowerCreate(BaseModel):
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
+    middle_name: Optional[str] = Field(default=None, max_length=100)
+    email: str = Field(max_length=254)
+    phone: str = Field(min_length=7, max_length=20)
+    borrower_classification: str = Field(default="Primary")
+
+
+# ---------------------------------------------------------------------------
 # Borrower Personal Info update schema
 # ---------------------------------------------------------------------------
 
