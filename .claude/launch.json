@@ -9,21 +9,14 @@
         "-c",
         "export PATH=/Users/markmorawski/Library/Caches/ms-playwright-go/1.50.1:$PATH && cd /Users/markmorawski/LoanOrigination/.claude/worktrees/exciting-khayyam/frontend && npm install && npm run dev -- --host 0.0.0.0 --port $PORT"
       ],
-      "port": 5173,
-      "autoPort": true
-        "export PATH=/Users/markmorawski/Library/Caches/ms-playwright-go/1.50.1:$PATH && cd /Users/markmorawski/LoanOrigination/.claude/worktrees/charming-satoshi/frontend && npm install && npm run dev -- --host 0.0.0.0 --port $PORT"
-      ],
       "port": 5173
-        "export PATH=/Users/markmorawski/Library/Caches/ms-playwright-go/1.50.1:$PATH && cd /Users/markmorawski/LoanOrigination/.claude/worktrees/hungry-williamson/frontend && npm install && npm run dev -- --host 0.0.0.0 --port 5174"
-      ],
-      "port": 5174
     },
     {
       "name": "Backend (FastAPI)",
       "runtimeExecutable": "/bin/sh",
       "runtimeArgs": [
         "-c",
-        "cd /Users/markmorawski/LoanOrigination/.claude/worktrees/hungry-williamson/backend && /Users/markmorawski/Library/Python/3.9/bin/uvicorn app.main:app --reload --port 8000"
+        "cd /Users/markmorawski/LoanOrigination/backend && /Users/markmorawski/Library/Python/3.9/bin/uvicorn app.main:app --reload --port 8000"
       ],
       "port": 8000
     }
