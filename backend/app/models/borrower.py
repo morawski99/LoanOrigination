@@ -1,9 +1,9 @@
 import enum
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional, List
 from uuid import UUID
 
-from sqlalchemy import String, Integer, Enum as SAEnum, ForeignKey, DateTime
+from sqlalchemy import String, Integer, Boolean, Date, Enum as SAEnum, ForeignKey, DateTime
 from sqlalchemy import String
 from sqlalchemy.orm import mapped_column, MappedColumn, relationship, Mapped
 
@@ -55,6 +55,11 @@ class Borrower(UUIDMixin, TimestampMixin, Base):
         nullable=True,
         comment="Tokenized SSN reference — never store plaintext SSN",
     )
+    # Last 4 digits of SSN for display purposes only
+    ssn_last4: MappedColumn[Optional[str]] = mapped_column(
+        String(4),
+        nullable=True,
+    )
 
     # Contact
     email: MappedColumn[str] = mapped_column(String(254), nullable=False)
@@ -68,12 +73,23 @@ class Borrower(UUIDMixin, TimestampMixin, Base):
         nullable=True,
         comment="AES-256 encrypted date of birth",
     )
+    # Plain date of birth (used in development; production should use dob_encrypted)
+    date_of_birth: MappedColumn[Optional[date]] = mapped_column(
+        Date,
+        nullable=True,
+    )
 
     # Credit
     credit_score: MappedColumn[Optional[int]] = mapped_column(
         Integer,
         nullable=True,
     )
+
+    # Section 6 Acknowledgments
+    agreed_app: MappedColumn[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    agreed_credit_pull: MappedColumn[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    agreed_ecoa: MappedColumn[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    agreed_electronic: MappedColumn[Optional[bool]] = mapped_column(Boolean, nullable=True)
 
     # URLA personal info additions
     citizenship_residency_type: MappedColumn[Optional[CitizenshipResidencyType]] = mapped_column(

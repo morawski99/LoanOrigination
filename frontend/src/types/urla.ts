@@ -330,6 +330,8 @@ export interface FullBorrower {
   last_name: string;
   middle_name?: string | null;
   suffix_name?: string | null;
+  ssn_last4?: string | null;
+  date_of_birth?: string | null; // YYYY-MM-DD
   email: string;
   phone: string;
   home_phone?: string | null;
@@ -339,6 +341,10 @@ export interface FullBorrower {
   marital_status_type?: MaritalStatusType | null;
   number_of_dependents?: number | null;
   dependent_ages_description?: string | null;
+  agreed_app?: boolean | null;
+  agreed_credit_pull?: boolean | null;
+  agreed_ecoa?: boolean | null;
+  agreed_electronic?: boolean | null;
   created_at: string;
   updated_at: string;
   residences: BorrowerResidence[];
@@ -373,7 +379,7 @@ export interface BorrowerPersonalInfo {
   middle_name?: string;
   suffix_name?: string;
   ssn_last4?: string;
-  dob_display?: string;
+  date_of_birth?: string; // YYYY-MM-DD
   email?: string;
   phone?: string;
   home_phone?: string;
@@ -382,4 +388,8 @@ export interface BorrowerPersonalInfo {
   marital_status_type?: MaritalStatusType;
   number_of_dependents?: number;
   dependent_ages_description?: string;
+  agreed_app?: boolean;
+  agreed_credit_pull?: boolean;
+  agreed_ecoa?: boolean;
+  agreed_electronic?: boolean;
 }
