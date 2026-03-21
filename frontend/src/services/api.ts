@@ -7,6 +7,8 @@ import type {
   Condition,
   ConditionCreatePayload,
   ConditionUpdatePayload,
+  AUSResult,
+  AUSResultCreatePayload,
 } from "@/types/loan";
 import type {
   URLAProgress,
@@ -130,6 +132,23 @@ export async function updateLoan(
     `/loans/${id}`,
     data
   );
+  return response.data;
+}
+
+export interface BorrowerCreatePayload {
+  first_name: string;
+  last_name: string;
+  middle_name?: string;
+  email: string;
+  phone: string;
+  borrower_classification?: string;
+}
+
+export async function createBorrower(
+  loanId: string,
+  data: BorrowerCreatePayload
+): Promise<import("@/types/loan").Borrower> {
+  const response = await apiClient.post(`/loans/${loanId}/borrowers`, data);
   return response.data;
 }
 
@@ -403,6 +422,33 @@ export async function upsertDemographics(
     data
   );
   return response.data;
+}
+
+// ─── AUS Results ─────────────────────────────────────────────────────────────
+
+export async function getAUSResults(loanId: string): Promise<AUSResult[]> {
+  const response: AxiosResponse<AUSResult[]> = await apiClient.get(
+    `/loans/${loanId}/aus-results`
+  );
+  return response.data;
+}
+
+export async function createAUSResult(
+  loanId: string,
+  data: AUSResultCreatePayload
+): Promise<AUSResult> {
+  const response: AxiosResponse<AUSResult> = await apiClient.post(
+    `/loans/${loanId}/aus-results`,
+    data
+  );
+  return response.data;
+}
+
+export async function deleteAUSResult(
+  loanId: string,
+  resultId: string
+): Promise<void> {
+  await apiClient.delete(`/loans/${loanId}/aus-results/${resultId}`);
 }
 
 // ─── Documents ───────────────────────────────────────────────────────────────

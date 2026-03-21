@@ -533,7 +533,7 @@ export default function LoanFilePage() {
             <ConditionsSection loanId={loan.id} />
           )}
           {activeSection === "aus" && (
-            <PlaceholderSection title="AUS Results" />
+            <AUSResultsSection loanId={loan.id} />
           )}
           {activeSection === "disclosures" && (
             <PlaceholderSection title="Disclosures" />

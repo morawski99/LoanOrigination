@@ -13,6 +13,7 @@ from app.models.reo import RealEstateOwned, PropertyUsageType
 from app.models.declaration import BorrowerDeclaration, OccupancyIntentType
 from app.models.military_service import BorrowerMilitaryService
 from app.models.demographics import BorrowerDemographics
+from app.models.aus_result import AUSResult, AUSSystem, AUSFinding
 
 __all__ = [
     "Base",
@@ -48,4 +49,7 @@ __all__ = [
     "OccupancyIntentType",
     "BorrowerMilitaryService",
     "BorrowerDemographics",
+    "AUSResult",
+    "AUSSystem",
+    "AUSFinding",
 ]
