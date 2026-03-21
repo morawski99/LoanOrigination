@@ -6,6 +6,7 @@ import { Badge } from "@/design-system/components";
 import { getLoan } from "@/services/api";
 import type { Loan } from "@/types/loan";
 import ConditionsSection from "./ConditionsSection";
+import AUSResultsSection from "./AUSResultsSection";
 
 type SectionKey =
   | "overview"
