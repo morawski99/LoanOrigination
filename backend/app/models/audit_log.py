@@ -17,10 +17,10 @@ class AuditLog(Base):
     """
     __tablename__ = "audit_logs"
 
-    id: MappedColumn[UUID] = mapped_column(
+    id: MappedColumn[str] = mapped_column(
         String(36),
         primary_key=True,
-        default=uuid4,
+        default=lambda: str(uuid4()),
     )
 
     # Context

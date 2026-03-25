@@ -12,6 +12,16 @@ import type {
 } from "@/types/loan";
 import type { UserResponse } from "@/types/user";
 import type {
+  LoanEstimate,
+  LoanEstimateListItem,
+  TRIDStatus,
+  LoanEstimateCreatePayload,
+  LoanEstimateUpdatePayload,
+  IssuePayload,
+  RevisePayload,
+  LoanEstimateFeeCreate,
+} from "@/types/loan_estimate";
+import type {
   URLAProgress,
   FullBorrower,
   BorrowerPersonalInfo,
@@ -36,7 +46,7 @@ import type {
 } from "@/types/urla";
 
 const BASE_URL =
-  import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1";
+  import.meta.env.VITE_API_URL ?? "/api/v1";
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -506,72 +516,86 @@ export async function getDocumentUploadUrl(
   return response.data;
 }
 
-export async function uploadDocumentFile(
-  loanId: string,
-  documentId: string,
-  file: File,
-  onProgress?: (pct: number) => void
-): Promise<import("@/types/loan").Document> {
-  const form = new FormData();
-  form.append("file", file);
-  const response = await apiClient.post(
-    `/loans/${loanId}/documents/${documentId}/upload`,
-    form,
-    {
-      headers: { "Content-Type": "multipart/form-data" },
-      onUploadProgress: onProgress
-        ? (e) => {
-            if (e.total) onProgress(Math.round((e.loaded / e.total) * 100));
-          }
-        : undefined,
-    }
+// ─── Loan Estimates ───────────────────────────────────────────────────────────
+
+export async function getLoanEstimates(loanId: string): Promise<LoanEstimateListItem[]> {
+  const response: AxiosResponse<LoanEstimateListItem[]> = await apiClient.get(
+    `/loans/${loanId}/loan-estimates`
   );
   return response.data;
 }
 
-export function getDocumentFileUrl(loanId: string, documentId: string): string {
-  return `${import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1"}/loans/${loanId}/documents/${documentId}/file`;
-}
-
-export async function deleteDocument(
-  loanId: string,
-  documentId: string
-): Promise<void> {
-  await apiClient.delete(`/loans/${loanId}/documents/${documentId}`);
-}
-
-// ─── Conditions ──────────────────────────────────────────────────────────────
-
-export async function getConditions(loanId: string): Promise<Condition[]> {
-  const response = await apiClient.get(`/loans/${loanId}/conditions`);
-  return response.data;
-}
-
-export async function createCondition(
-  loanId: string,
-  payload: ConditionCreatePayload
-): Promise<Condition> {
-  const response = await apiClient.post(`/loans/${loanId}/conditions`, payload);
-  return response.data;
-}
-
-export async function updateCondition(
-  loanId: string,
-  conditionId: string,
-  payload: ConditionUpdatePayload
-): Promise<Condition> {
-  const response = await apiClient.patch(
-    `/loans/${loanId}/conditions/${conditionId}`,
-    payload
+export async function getTRIDStatus(loanId: string): Promise<TRIDStatus> {
+  const response: AxiosResponse<TRIDStatus> = await apiClient.get(
+    `/loans/${loanId}/loan-estimates/trid-status`
   );
   return response.data;
 }
 
-export async function deleteCondition(
+export async function getLoanEstimate(loanId: string, leId: string): Promise<LoanEstimate> {
+  const response: AxiosResponse<LoanEstimate> = await apiClient.get(
+    `/loans/${loanId}/loan-estimates/${leId}`
+  );
+  return response.data;
+}
+
+export async function createLoanEstimate(
   loanId: string,
-  conditionId: string
-): Promise<void> {
-  await apiClient.delete(`/loans/${loanId}/conditions/${conditionId}`);
+  data: LoanEstimateCreatePayload
+): Promise<LoanEstimate> {
+  const response: AxiosResponse<LoanEstimate> = await apiClient.post(
+    `/loans/${loanId}/loan-estimates`,
+    data
+  );
+  return response.data;
+}
+
+export async function updateLoanEstimate(
+  loanId: string,
+  leId: string,
+  data: LoanEstimateUpdatePayload
+): Promise<LoanEstimate> {
+  const response: AxiosResponse<LoanEstimate> = await apiClient.patch(
+    `/loans/${loanId}/loan-estimates/${leId}`,
+    data
+  );
+  return response.data;
+}
+
+export async function replaceLEFees(
+  loanId: string,
+  leId: string,
+  fees: LoanEstimateFeeCreate[]
+): Promise<LoanEstimate> {
+  const response: AxiosResponse<LoanEstimate> = await apiClient.put(
+    `/loans/${loanId}/loan-estimates/${leId}/fees`,
+    { fees }
+  );
+  return response.data;
+}
+
+export async function issueLoanEstimate(
+  loanId: string,
+  leId: string,
+  data: IssuePayload
+): Promise<LoanEstimate> {
+  const response: AxiosResponse<LoanEstimate> = await apiClient.post(
+    `/loans/${loanId}/loan-estimates/${leId}/issue`,
+    data
+  );
+  return response.data;
+}
+
+export async function reviseLoanEstimate(
+  loanId: string,
+  leId: string,
+  data: RevisePayload
+): Promise<LoanEstimate> {
+  const response: AxiosResponse<LoanEstimate> = await apiClient.post(
+    `/loans/${loanId}/loan-estimates/${leId}/revise`,
+    data
+  );
+  return response.data;
 }
 
 export default apiClient;

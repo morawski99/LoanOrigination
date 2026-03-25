@@ -13,7 +13,16 @@ from app.models.reo import RealEstateOwned, PropertyUsageType
 from app.models.declaration import BorrowerDeclaration, OccupancyIntentType
 from app.models.military_service import BorrowerMilitaryService
 from app.models.demographics import BorrowerDemographics
-from app.models.aus_result import AUSResult, AUSSystem, AUSFinding
+from app.models.loan_estimate import (
+    LoanEstimate,
+    LoanEstimateFee,
+    LEStatus,
+    RespaSection,
+    ToleranceCategory,
+    PaidBy,
+    COCReason,
+    SECTION_TOLERANCE,
+)
 
 __all__ = [
     "Base",
@@ -49,7 +58,12 @@ __all__ = [
     "OccupancyIntentType",
     "BorrowerMilitaryService",
     "BorrowerDemographics",
-    "AUSResult",
-    "AUSSystem",
-    "AUSFinding",
+    "LoanEstimate",
+    "LoanEstimateFee",
+    "LEStatus",
+    "RespaSection",
+    "ToleranceCategory",
+    "PaidBy",
+    "COCReason",
+    "SECTION_TOLERANCE",
 ]

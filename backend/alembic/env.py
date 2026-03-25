@@ -20,13 +20,8 @@ backend_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(backend_root))
 
 # Import all models to register them with the metadata for autogenerate
+from app.models import *  # noqa: E402, F401, F403
 from app.models.base import Base  # noqa: E402
-from app.models.user import User  # noqa: E402, F401
-from app.models.loan import Loan  # noqa: E402, F401
-from app.models.borrower import Borrower  # noqa: E402, F401
-from app.models.document import Document  # noqa: E402, F401
-from app.models.audit_log import AuditLog  # noqa: E402, F401
-from app.models.aus_result import AUSResult  # noqa: E402, F401
 
 # Alembic Config object — provides access to values in alembic.ini
 config = context.config

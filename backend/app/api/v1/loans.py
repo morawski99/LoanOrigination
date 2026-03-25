@@ -226,7 +226,7 @@ async def get_loan(
     """
     Retrieve a single loan by its UUID, including all borrowers and documents.
     """
-    result = await db.execute(select(Loan).where(Loan.id == loan_id))
+    result = await db.execute(select(Loan).where(Loan.id == str(loan_id)))
     loan = result.scalar_one_or_none()
 
     if loan is None:
@@ -250,7 +250,7 @@ async def update_loan(
     Partially update a loan's fields.
     Records all changes in the audit log with before/after snapshots.
     """
-    result = await db.execute(select(Loan).where(Loan.id == loan_id))
+    result = await db.execute(select(Loan).where(Loan.id == str(loan_id)))
     loan = result.scalar_one_or_none()
 
     if loan is None:
