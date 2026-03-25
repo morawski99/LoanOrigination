@@ -433,12 +433,22 @@ export async function getDocumentUploadUrl(
   loanId: string,
   filename: string,
   contentType: string
-) {
+): Promise<{ upload_url: string; s3_key: string; expires_in_seconds: number }> {
   const response = await apiClient.get(
     `/loans/${loanId}/documents/upload-url`,
     {
       params: { filename, content_type: contentType },
     }
+  );
+  return response.data;
+}
+
+export async function getDocumentDownloadUrl(
+  loanId: string,
+  documentId: string
+): Promise<{ download_url: string; expires_in_seconds: number }> {
+  const response = await apiClient.get(
+    `/loans/${loanId}/documents/${documentId}/download-url`
   );
   return response.data;
 }
