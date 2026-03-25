@@ -5,6 +5,7 @@ import { ChevronLeft, FileText, Users, Folder, CheckSquare, BarChart2, FileSigna
 import { Badge } from "@/design-system/components";
 import { getLoan } from "@/services/api";
 import type { Loan } from "@/types/loan";
+import DisclosuresSection from "./DisclosuresSection";
 
 type SectionKey =
   | "overview"
@@ -535,7 +536,7 @@ export default function LoanFilePage() {
             <PlaceholderSection title="AUS Results" />
           )}
           {activeSection === "disclosures" && (
-            <PlaceholderSection title="Disclosures" />
+            <DisclosuresSection loan={loan} />
           )}
           {activeSection === "closing" && (
             <PlaceholderSection title="Closing" />
