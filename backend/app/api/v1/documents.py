@@ -53,6 +53,11 @@ class PresignedUploadResponse(BaseModel):
     expires_in_seconds: int = 900  # 15 minutes
 
 
+class PresignedDownloadResponse(BaseModel):
+    download_url: str
+    expires_in_seconds: int = 900  # 15 minutes
+
+
 # ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
@@ -198,6 +203,78 @@ async def get_presigned_upload_url(
         s3_key=s3_key,
         expires_in_seconds=900,
     )
+
+
+@router.get(
+    "/loans/{loan_id}/documents/{document_id}/download-url",
+    response_model=PresignedDownloadResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_presigned_download_url(
+    loan_id: UUID,
+    document_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> PresignedDownloadResponse:
+    """
+    Generate a pre-signed S3 GET URL so the browser can view/download the document.
+    The URL is valid for 15 minutes.
+    """
+    await _get_loan_or_404(loan_id, db)
+
+    result = await db.execute(
+        select(Document).where(
+            Document.id == document_id,
+            Document.loan_id == loan_id,
+        )
+    )
+    document = result.scalar_one_or_none()
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Document with id={document_id} not found on loan {loan_id}.",
+        )
+    if not document.s3_key:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Document has not been uploaded yet (no s3_key).",
+        )
+
+    if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
+        import boto3
+        from botocore.exceptions import ClientError
+
+        s3_client = boto3.client(
+            "s3",
+            region_name=settings.AWS_REGION,
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        )
+        try:
+            download_url = s3_client.generate_presigned_url(
+                "get_object",
+                Params={
+                    "Bucket": settings.AWS_S3_BUCKET,
+                    "Key": document.s3_key,
+                    "ResponseContentDisposition": (
+                        f'inline; filename="{document.original_filename}"'
+                    ),
+                },
+                ExpiresIn=900,
+            )
+        except ClientError as e:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"Failed to generate download URL: {e}",
+            )
+    else:
+        # Development fallback
+        download_url = (
+            f"http://localhost:9000/{settings.AWS_S3_BUCKET}/{document.s3_key}"
+            f"?x-dev-placeholder=true"
+        )
+
+    return PresignedDownloadResponse(download_url=download_url, expires_in_seconds=900)
 
 
 @router.patch(

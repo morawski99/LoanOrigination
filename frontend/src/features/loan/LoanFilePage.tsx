@@ -5,7 +5,7 @@ import { ChevronLeft, FileText, Users, Folder, CheckSquare, BarChart2, FileSigna
 import { Badge } from "@/design-system/components";
 import { getLoan, createBorrower } from "@/services/api";
 import type { Loan } from "@/types/loan";
-import DisclosuresSection from "./DisclosuresSection";
+import EFolderSection from "@/features/documents/EFolderSection";
 
 type SectionKey =
   | "overview"
@@ -677,7 +677,7 @@ export default function LoanFilePage() {
             <BorrowersSection loan={loan} />
           )}
           {activeSection === "documents" && (
-            <DocumentsSection loanId={loan.id} />
+            <EFolderSection loanId={loan.id} />
           )}
           {activeSection === "conditions" && (
             <ConditionsSection loanId={loan.id} />
