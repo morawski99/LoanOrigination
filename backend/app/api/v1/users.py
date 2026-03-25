@@ -12,6 +12,13 @@ from app.schemas.user import UserCreate, UserResponse
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
+ASSIGNABLE_ROLES = {
+    UserRole.LOAN_OFFICER,
+    UserRole.PROCESSOR,
+    UserRole.UNDERWRITER,
+    UserRole.BRANCH_MANAGER,
+}
+
 
 def _require_admin(current_user: User) -> User:
     """Helper that raises 403 if the user is not an Admin."""
@@ -21,6 +28,32 @@ def _require_admin(current_user: User) -> User:
             detail="Admin role required to access this endpoint.",
         )
     return current_user
+
+
+@router.get(
+    "/assignable",
+    response_model=List[UserResponse],
+    status_code=status.HTTP_200_OK,
+    summary="List users that can be assigned to loans",
+)
+async def list_assignable_users(
+    role: Optional[UserRole] = Query(default=None, description="Filter to a specific role"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> List[UserResponse]:
+    """
+    Return active users with roles that can be assigned to loans
+    (LoanOfficer, Processor, Underwriter, BranchManager).
+    Available to any authenticated user for assignment dropdowns.
+    """
+    roles = {role} if role is not None else ASSIGNABLE_ROLES
+    query = (
+        select(User)
+        .where(User.is_active.is_(True), User.role.in_(roles))
+        .order_by(User.full_name)
+    )
+    result = await db.execute(query)
+    return [UserResponse.model_validate(u) for u in result.scalars().all()]
 
 
 @router.get("", response_model=List[UserResponse], status_code=status.HTTP_200_OK)

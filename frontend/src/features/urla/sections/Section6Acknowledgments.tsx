@@ -19,11 +19,14 @@ The undersigned specifically acknowledge(s) and agree(s) that: (1) The loan requ
 
 export const Section6Acknowledgments: React.FC<Section6Props> = ({
   borrower,
+  formHook,
 }) => {
-  const [agreedToApp, setAgreedToApp] = useState(false);
-  const [agreedToCreditPull, setAgreedToCreditPull] = useState(false);
-  const [agreedToECOA, setAgreedToECOA] = useState(false);
-  const [agreedElectronic, setAgreedElectronic] = useState(false);
+  const { savePersonalInfo, triggerAutoSave } = formHook;
+
+  const [agreedToApp, setAgreedToApp] = useState(borrower?.agreed_app ?? false);
+  const [agreedToCreditPull, setAgreedToCreditPull] = useState(borrower?.agreed_credit_pull ?? false);
+  const [agreedToECOA, setAgreedToECOA] = useState(borrower?.agreed_ecoa ?? false);
+  const [agreedElectronic, setAgreedElectronic] = useState(borrower?.agreed_electronic ?? false);
 
   const today = new Date().toLocaleDateString("en-US", {
     month: "long",
@@ -75,7 +78,10 @@ export const Section6Acknowledgments: React.FC<Section6Props> = ({
             label='I/We certify that the information provided in this application is true and correct as of the date set forth, and acknowledge my/our understanding of the Notice to Applicants'
             name="agreed_to_app"
             checked={agreedToApp}
-            onChange={setAgreedToApp}
+            onChange={(val) => {
+              setAgreedToApp(val);
+              triggerAutoSave(() => savePersonalInfo({ agreed_app: val }));
+            }}
             description="Required to proceed"
           />
 
@@ -83,7 +89,10 @@ export const Section6Acknowledgments: React.FC<Section6Props> = ({
             label="I authorize the Lender to obtain a tri-merge credit report"
             name="agreed_credit_pull"
             checked={agreedToCreditPull}
-            onChange={setAgreedToCreditPull}
+            onChange={(val) => {
+              setAgreedToCreditPull(val);
+              triggerAutoSave(() => savePersonalInfo({ agreed_credit_pull: val }));
+            }}
             description="Required to process your application"
           />
 
@@ -91,14 +100,20 @@ export const Section6Acknowledgments: React.FC<Section6Props> = ({
             label="I have read and understand the Equal Credit Opportunity Act disclosures"
             name="agreed_ecoa"
             checked={agreedToECOA}
-            onChange={setAgreedToECOA}
+            onChange={(val) => {
+              setAgreedToECOA(val);
+              triggerAutoSave(() => savePersonalInfo({ agreed_ecoa: val }));
+            }}
           />
 
           <Checkbox
             label="By checking this box I am signing this application electronically"
             name="agreed_electronic"
             checked={agreedElectronic}
-            onChange={setAgreedElectronic}
+            onChange={(val) => {
+              setAgreedElectronic(val);
+              triggerAutoSave(() => savePersonalInfo({ agreed_electronic: val }));
+            }}
             description="Your electronic signature is legally equivalent to a handwritten signature"
           />
         </div>

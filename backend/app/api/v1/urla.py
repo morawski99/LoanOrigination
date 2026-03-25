@@ -29,6 +29,7 @@ from app.schemas.urla import (
     URLAProgress,
     URLASectionStatus,
     FullBorrowerResponse,
+    BorrowerCreate,
     BorrowerPersonalInfoUpdate,
     BorrowerResponse,
     ResidenceCreate,
@@ -92,7 +93,7 @@ async def _get_borrower_or_404(
     return borrower
 
 
-def _compute_urla_progress(borrower: Borrower) -> URLAProgress:
+def _compute_urla_progress(borrower: Borrower, loan: Optional[Loan] = None) -> URLAProgress:
     """Compute section completion status based on borrower data."""
 
     def _res_complete() -> URLASectionStatus:
@@ -157,14 +158,43 @@ def _compute_urla_progress(borrower: Borrower) -> URLAProgress:
             return URLASectionStatus.NOT_STARTED
         return URLASectionStatus.COMPLETED
 
+    def _acknowledgments_complete() -> URLASectionStatus:
+        all_agreed = all([
+            borrower.agreed_app,
+            borrower.agreed_credit_pull,
+            borrower.agreed_ecoa,
+            borrower.agreed_electronic,
+        ])
+        if all_agreed:
+            return URLASectionStatus.COMPLETED
+        any_agreed = any([
+            borrower.agreed_app,
+            borrower.agreed_credit_pull,
+            borrower.agreed_ecoa,
+            borrower.agreed_electronic,
+        ])
+        return URLASectionStatus.IN_PROGRESS if any_agreed else URLASectionStatus.NOT_STARTED
+
+    def _loan_property_complete() -> URLASectionStatus:
+        if loan is None:
+            return URLASectionStatus.NOT_STARTED
+        mismo = loan.mismo_data or {}
+        has_title = bool(mismo.get("title_name") or mismo.get("title_manner"))
+        has_price = bool(mismo.get("purchase_price"))
+        if has_title and has_price:
+            return URLASectionStatus.COMPLETED
+        if has_title or has_price:
+            return URLASectionStatus.IN_PROGRESS
+        return URLASectionStatus.NOT_STARTED
+
     return URLAProgress(
         personal_info=_personal_complete(),
         residence=_res_complete(),
         employment=_emp_complete(),
         assets_liabilities=_assets_complete(),
-        loan_property=URLASectionStatus.NOT_STARTED,
+        loan_property=_loan_property_complete(),
         declarations=_declarations_complete(),
-        acknowledgments=URLASectionStatus.NOT_STARTED,
+        acknowledgments=_acknowledgments_complete(),
         military_service=_military_complete(),
         demographics=_demographics_complete(),
     )
@@ -222,7 +252,59 @@ async def get_urla_progress(
         # Return all not-started if no borrowers yet
         return URLAProgress()
 
-    return _compute_urla_progress(borrower)
+    return _compute_urla_progress(borrower, loan)
+
+
+# ---------------------------------------------------------------------------
+# Borrower creation
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/{loan_id}/borrowers",
+    response_model=BorrowerResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_borrower(
+    loan_id: UUID,
+    payload: BorrowerCreate,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> BorrowerResponse:
+    """Create a borrower (Primary or CoBorrower) for a loan."""
+    await _get_loan_or_404(loan_id, db)
+
+    borrower = Borrower(
+        loan_id=loan_id,
+        borrower_classification=payload.borrower_classification,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
+        middle_name=payload.middle_name,
+        email=payload.email,
+        phone=payload.phone,
+    )
+    db.add(borrower)
+    await db.flush()
+
+    await _create_audit(
+        db=db,
+        loan_id=loan_id,
+        user_id=current_user.id,
+        action="borrower.created",
+        entity_type="borrower",
+        entity_id=borrower.id,
+        after_value={
+            "first_name": payload.first_name,
+            "last_name": payload.last_name,
+            "email": payload.email,
+            "borrower_classification": payload.borrower_classification,
+        },
+        request=request,
+    )
+
+    await db.commit()
+    await db.refresh(borrower)
+    return BorrowerResponse.model_validate(borrower)
 
 
 # ---------------------------------------------------------------------------
@@ -269,10 +351,6 @@ async def update_personal_info(
 
     before_snapshot: dict = {}
     update_data = payload.model_dump(exclude_none=True)
-
-    # ssn_last4 and dob_display are display-only; skip direct field writes
-    update_data.pop("ssn_last4", None)
-    update_data.pop("dob_display", None)
 
     for field, new_value in update_data.items():
         current_value = getattr(borrower, field, None)

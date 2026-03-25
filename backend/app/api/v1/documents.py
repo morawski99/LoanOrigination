@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -320,3 +322,151 @@ async def update_document(
     await db.commit()
     await db.refresh(document)
     return DocumentResponse.model_validate(document)
+
+
+@router.post(
+    "/loans/{loan_id}/documents/{document_id}/upload",
+    response_model=DocumentResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def upload_document_file(
+    loan_id: UUID,
+    document_id: UUID,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> DocumentResponse:
+    """
+    Upload a file for an existing document record (local dev filesystem storage).
+
+    In production use the presigned S3 URL flow instead. Here the file is
+    saved under LOCAL_UPLOAD_DIR and the document is marked RECEIVED.
+    """
+    await _get_loan_or_404(loan_id, db)
+
+    result = await db.execute(
+        select(Document).where(
+            Document.id == document_id,
+            Document.loan_id == loan_id,
+        )
+    )
+    document = result.scalar_one_or_none()
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Document {document_id} not found on loan {loan_id}.",
+        )
+
+    # Sanitise filename
+    original = file.filename or "upload"
+    safe_name = "".join(
+        c if (c.isalnum() or c in "._-") else "_" for c in original
+    )
+
+    dest_dir = (
+        Path(settings.LOCAL_UPLOAD_DIR)
+        / str(loan_id)
+        / str(document_id)
+    )
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest_path = dest_dir / safe_name
+
+    contents = await file.read()
+    dest_path.write_bytes(contents)
+
+    document.s3_key = f"local://{loan_id}/{document_id}/{safe_name}"
+    document.document_status = DocumentStatus.RECEIVED
+    document.uploaded_at = datetime.now(timezone.utc)
+    document.uploaded_by_id = current_user.id
+
+    await db.commit()
+    await db.refresh(document)
+    return DocumentResponse.model_validate(document)
+
+
+@router.get(
+    "/loans/{loan_id}/documents/{document_id}/file",
+    status_code=status.HTTP_200_OK,
+)
+async def download_document_file(
+    loan_id: UUID,
+    document_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> FileResponse:
+    """
+    Stream a locally stored document file back to the client.
+    """
+    await _get_loan_or_404(loan_id, db)
+
+    result = await db.execute(
+        select(Document).where(
+            Document.id == document_id,
+            Document.loan_id == loan_id,
+        )
+    )
+    document = result.scalar_one_or_none()
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Document {document_id} not found on loan {loan_id}.",
+        )
+
+    if not document.s3_key or not document.s3_key.startswith("local://"):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No locally stored file for this document.",
+        )
+
+    relative = document.s3_key[len("local://"):]
+    file_path = Path(settings.LOCAL_UPLOAD_DIR) / relative
+
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="File not found on server filesystem.",
+        )
+
+    return FileResponse(
+        path=str(file_path),
+        filename=document.original_filename,
+        media_type="application/octet-stream",
+    )
+
+
+@router.delete(
+    "/loans/{loan_id}/documents/{document_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_document(
+    loan_id: UUID,
+    document_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> None:
+    """
+    Delete a document record (and its local file if present).
+    """
+    await _get_loan_or_404(loan_id, db)
+
+    result = await db.execute(
+        select(Document).where(
+            Document.id == document_id,
+            Document.loan_id == loan_id,
+        )
+    )
+    document = result.scalar_one_or_none()
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Document {document_id} not found on loan {loan_id}.",
+        )
+
+    if document.s3_key and document.s3_key.startswith("local://"):
+        relative = document.s3_key[len("local://"):]
+        file_path = Path(settings.LOCAL_UPLOAD_DIR) / relative
+        if file_path.exists():
+            file_path.unlink()
+
+    await db.delete(document)
+    await db.commit()

@@ -62,15 +62,43 @@ export const Section4LoanProperty: React.FC<Section4Props> = ({
     enabled: Boolean(loanId),
   });
 
-  const [purchasePrice, setPurchasePrice] = React.useState("");
-  const [improvements, setImprovements] = React.useState("");
-  const [refinancePurpose, setRefinancePurpose] = React.useState("");
-  const [titleName, setTitleName] = React.useState("");
-  const [titleManner, setTitleManner] = React.useState("");
-  const [estateType, setEstateType] = React.useState("FeeSimple");
-  const [leaseholdExpiry, setLeaseholdExpiry] = React.useState("");
-  const [downPaymentSource, setDownPaymentSource] = React.useState("");
-  const [hoaPayment, setHoaPayment] = React.useState("");
+  // Initialize from mismo_data if present
+  const mismo = (loan?.mismo_data ?? {}) as Record<string, string>;
+
+  const [purchasePrice, setPurchasePrice] = React.useState(mismo.purchase_price ?? "");
+  const [improvements, setImprovements] = React.useState(mismo.improvements ?? "");
+  const [refinancePurpose, setRefinancePurpose] = React.useState(mismo.refinance_purpose ?? "");
+  const [titleName, setTitleName] = React.useState(mismo.title_name ?? "");
+  const [titleManner, setTitleManner] = React.useState(mismo.title_manner ?? "");
+  const [estateType, setEstateType] = React.useState(mismo.estate_type ?? "FeeSimple");
+  const [leaseholdExpiry, setLeaseholdExpiry] = React.useState(mismo.leasehold_expiry ?? "");
+  const [downPaymentSource, setDownPaymentSource] = React.useState(mismo.down_payment_source ?? "");
+  const [hoaPayment, setHoaPayment] = React.useState(mismo.hoa_payment ?? "");
+
+  // Sync when loan data loads for the first time
+  const [initialised, setInitialised] = React.useState(false);
+  React.useEffect(() => {
+    if (loan && !initialised) {
+      const m = (loan.mismo_data ?? {}) as Record<string, string>;
+      setPurchasePrice(m.purchase_price ?? "");
+      setImprovements(m.improvements ?? "");
+      setRefinancePurpose(m.refinance_purpose ?? "");
+      setTitleName(m.title_name ?? "");
+      setTitleManner(m.title_manner ?? "");
+      setEstateType(m.estate_type ?? "FeeSimple");
+      setLeaseholdExpiry(m.leasehold_expiry ?? "");
+      setDownPaymentSource(m.down_payment_source ?? "");
+      setHoaPayment(m.hoa_payment ?? "");
+      setInitialised(true);
+    }
+  }, [loan, initialised]);
+
+  const saveMismoField = (key: string, value: string) => {
+    const current = (loan?.mismo_data ?? {}) as Record<string, string>;
+    triggerAutoSave(() =>
+      updateLoan(loanId, { mismo_data: { ...current, [key]: value } })
+    );
+  };
 
   const isRefinance =
     loan?.loan_purpose_type === "Refinance" ||
@@ -123,9 +151,7 @@ export const Section4LoanProperty: React.FC<Section4Props> = ({
             value={purchasePrice}
             onChange={(val) => {
               setPurchasePrice(val);
-              triggerAutoSave(() =>
-                updateLoan(loanId, { loan_amount: parseFloat(val) })
-              );
+              saveMismoField("purchase_price", val);
             }}
           />
           {isRefinance && (
@@ -133,7 +159,10 @@ export const Section4LoanProperty: React.FC<Section4Props> = ({
               label="Improvements / Repairs Amount"
               name="improvements"
               value={improvements}
-              onChange={setImprovements}
+              onChange={(val) => {
+                setImprovements(val);
+                saveMismoField("improvements", val);
+              }}
               helperText="Cost of planned improvements"
             />
           )}
@@ -144,7 +173,10 @@ export const Section4LoanProperty: React.FC<Section4Props> = ({
             label="Refinance Purpose"
             name="refinance_purpose"
             value={refinancePurpose}
-            onChange={setRefinancePurpose}
+            onChange={(val) => {
+              setRefinancePurpose(val);
+              saveMismoField("refinance_purpose", val);
+            }}
             options={REFINANCE_PURPOSE_OPTIONS}
             placeholder="Select purpose..."
           />
@@ -157,13 +189,17 @@ export const Section4LoanProperty: React.FC<Section4Props> = ({
           name="title_name"
           value={titleName}
           onChange={(e) => setTitleName(e.target.value)}
+          onBlur={() => saveMismoField("title_name", titleName)}
           helperText="Full legal name(s) as they should appear on title"
         />
         <Select
           label="Manner in which title will be held"
           name="title_manner"
           value={titleManner}
-          onChange={setTitleManner}
+          onChange={(val) => {
+            setTitleManner(val);
+            saveMismoField("title_manner", val);
+          }}
           options={TITLE_MANNER_OPTIONS}
           placeholder="Select..."
         />
@@ -171,7 +207,10 @@ export const Section4LoanProperty: React.FC<Section4Props> = ({
           label="Estate will be held in"
           name="estate_type"
           value={estateType}
-          onChange={setEstateType}
+          onChange={(val) => {
+            setEstateType(val);
+            saveMismoField("estate_type", val);
+          }}
           options={ESTATE_OPTIONS}
           layout="horizontal"
         />
@@ -183,6 +222,7 @@ export const Section4LoanProperty: React.FC<Section4Props> = ({
               type="date"
               value={leaseholdExpiry}
               onChange={(e) => setLeaseholdExpiry(e.target.value)}
+              onBlur={() => saveMismoField("leasehold_expiry", leaseholdExpiry)}
               required
             />
           </div>
@@ -194,7 +234,10 @@ export const Section4LoanProperty: React.FC<Section4Props> = ({
           label="Source of Down Payment"
           name="down_payment_source"
           value={downPaymentSource}
-          onChange={setDownPaymentSource}
+          onChange={(val) => {
+            setDownPaymentSource(val);
+            saveMismoField("down_payment_source", val);
+          }}
           options={DOWN_PAYMENT_SOURCE_OPTIONS}
           placeholder="Select source..."
         />
@@ -203,7 +246,10 @@ export const Section4LoanProperty: React.FC<Section4Props> = ({
             label="HOA Monthly Payment"
             name="hoa_payment"
             value={hoaPayment}
-            onChange={setHoaPayment}
+            onChange={(val) => {
+              setHoaPayment(val);
+              saveMismoField("hoa_payment", val);
+            }}
             helperText="Leave blank if not applicable"
           />
         </div>

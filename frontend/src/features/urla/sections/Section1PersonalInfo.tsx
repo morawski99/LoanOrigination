@@ -209,26 +209,28 @@ export const Section1PersonalInfo: React.FC<Section1Props> = ({
           />
         </div>
 
-        <Controller
-          name="phone"
-          control={control}
-          render={({ field }) => (
-            <SSNInput
-              label="Social Security Number"
-              name="ssn"
-              value={""}
-              onChange={() => {}}
-              required
-            />
-          )}
+        <SSNInput
+          label="Social Security Number"
+          name="ssn"
+          value={borrower?.ssn_last4 ?? ""}
+          onChange={(val) => {
+            if (val.length === 9) {
+              triggerAutoSave(() =>
+                savePersonalInfo({ ssn_last4: val.slice(-4) })
+              );
+            }
+          }}
+          required
         />
 
         <div className="max-w-xs">
           <DateInput
             label="Date of Birth"
             name="dob"
-            value={""}
-            onChange={() => {}}
+            value={borrower?.date_of_birth ?? ""}
+            onChange={(val) => {
+              triggerAutoSave(() => savePersonalInfo({ date_of_birth: val }));
+            }}
             required
             maxDate={new Date().toISOString().split("T")[0]}
             helperText="Must be at least 18 years old"
