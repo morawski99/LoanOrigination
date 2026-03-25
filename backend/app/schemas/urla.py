@@ -511,6 +511,19 @@ class DemographicsResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Borrower Create schema
+# ---------------------------------------------------------------------------
+
+class BorrowerCreate(BaseModel):
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
+    middle_name: Optional[str] = Field(default=None, max_length=100)
+    email: str = Field(max_length=254)
+    phone: str = Field(min_length=7, max_length=20)
+    borrower_classification: str = Field(default="Primary")
+
+
+# ---------------------------------------------------------------------------
 # Borrower Personal Info update schema
 # ---------------------------------------------------------------------------
 
@@ -519,8 +532,8 @@ class BorrowerPersonalInfoUpdate(BaseModel):
     last_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
     middle_name: Optional[str] = Field(default=None, max_length=100)
     suffix_name: Optional[str] = Field(default=None, max_length=20)
-    ssn_last4: Optional[str] = Field(default=None, max_length=4, description="For display only")
-    dob_display: Optional[str] = Field(default=None, description="MM/YYYY format for display")
+    ssn_last4: Optional[str] = Field(default=None, max_length=4)
+    date_of_birth: Optional[date] = None
     email: Optional[str] = Field(default=None, max_length=254)
     phone: Optional[str] = Field(default=None, max_length=20)
     home_phone: Optional[str] = Field(default=None, max_length=20)
@@ -529,6 +542,11 @@ class BorrowerPersonalInfoUpdate(BaseModel):
     marital_status_type: Optional[MaritalStatusType] = None
     number_of_dependents: Optional[int] = Field(default=None, ge=0, le=20)
     dependent_ages_description: Optional[str] = Field(default=None, max_length=100)
+    # Section 6 acknowledgments
+    agreed_app: Optional[bool] = None
+    agreed_credit_pull: Optional[bool] = None
+    agreed_ecoa: Optional[bool] = None
+    agreed_electronic: Optional[bool] = None
 
 
 # ---------------------------------------------------------------------------
@@ -544,6 +562,8 @@ class BorrowerResponse(BaseModel):
     last_name: str
     middle_name: Optional[str] = None
     suffix_name: Optional[str] = None
+    ssn_last4: Optional[str] = None
+    date_of_birth: Optional[date] = None
     email: str
     phone: str
     home_phone: Optional[str] = None
@@ -553,6 +573,10 @@ class BorrowerResponse(BaseModel):
     marital_status_type: Optional[MaritalStatusType] = None
     number_of_dependents: Optional[int] = None
     dependent_ages_description: Optional[str] = None
+    agreed_app: Optional[bool] = None
+    agreed_credit_pull: Optional[bool] = None
+    agreed_ecoa: Optional[bool] = None
+    agreed_electronic: Optional[bool] = None
     created_at: datetime
     updated_at: datetime
 

@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Optional, List
 from uuid import UUID
 
-from sqlalchemy import String, Numeric, Date, Enum as SAEnum, ForeignKey
+from sqlalchemy import String, Numeric, Date, DateTime, Enum as SAEnum, ForeignKey
 from sqlalchemy import String, JSON
 from sqlalchemy.orm import mapped_column, MappedColumn, relationship, Mapped
 
@@ -120,6 +120,12 @@ class Loan(UUIDMixin, TimestampMixin, Base):
         nullable=True,
     )
 
+    # Tracks when the loan last changed status — used to compute days_in_status
+    status_changed_at: MappedColumn[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
     # Key dates
     application_received_date: MappedColumn[Optional[date]] = mapped_column(
         Date,
@@ -142,6 +148,13 @@ class Loan(UUIDMixin, TimestampMixin, Base):
         back_populates="loan",
         cascade="all, delete-orphan",
         lazy="selectin",
+    )
+    aus_results: Mapped[List["AUSResult"]] = relationship(  # noqa: F821
+        "AUSResult",
+        back_populates="loan",
+        cascade="all, delete-orphan",
+        lazy="select",
+        order_by="AUSResult.run_at.desc()",
     )
 
     def __repr__(self) -> str:
