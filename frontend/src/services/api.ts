@@ -475,6 +475,46 @@ export async function deleteAUSResult(
   await apiClient.delete(`/loans/${loanId}/aus-results/${resultId}`);
 }
 
+// ─── Conditions ──────────────────────────────────────────────────────────────
+
+export async function getConditions(loanId: string): Promise<Condition[]> {
+  const response: AxiosResponse<Condition[]> = await apiClient.get(
+    `/loans/${loanId}/conditions`
+  );
+  return response.data;
+}
+
+export async function createCondition(
+  loanId: string,
+  data: ConditionCreatePayload
+): Promise<Condition> {
+  const response: AxiosResponse<Condition> = await apiClient.post(
+    `/loans/${loanId}/conditions`,
+    data
+  );
+  return response.data;
+}
+
+export async function updateCondition(
+  loanId: string,
+  conditionId: string,
+  data: ConditionUpdatePayload
+): Promise<Condition> {
+  const response: AxiosResponse<Condition> = await apiClient.patch(
+    `/loans/${loanId}/conditions/${conditionId}`,
+    data
+  );
+  return response.data;
+}
+
+export async function deleteCondition(
+  loanId: string,
+  conditionId: string
+): Promise<void> {
+  await apiClient.delete(`/loans/${loanId}/conditions/${conditionId}`);
+}
+
+
 // ─── Documents ───────────────────────────────────────────────────────────────
 
 export async function getDocuments(loanId: string) {

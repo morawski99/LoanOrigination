@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CheckSquare,
   ChevronDown,
@@ -11,90 +12,12 @@ import {
   MinusCircle,
 } from "lucide-react";
 import type { Condition, ConditionType, ConditionStatus } from "@/types/loan";
-
-// ─── Seed data (used until a backend is wired up) ────────────────────────────
-
-let _nextId = 10;
-function genId() {
-  return String(++_nextId);
-}
-
-const SEED_CONDITIONS: Condition[] = [
-  {
-    id: "1",
-    loan_id: "",
-    condition_type: "PTA",
-    status: "Open",
-    description: "Provide 2 years signed federal tax returns (all pages)",
-    due_date: "2026-04-01",
-    assigned_to: "Processor",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    loan_id: "",
-    condition_type: "PTA",
-    status: "Cleared",
-    description: "Written VOE from current employer confirming 2-year history",
-    due_date: "2026-03-25",
-    assigned_to: "Underwriter",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "3",
-    loan_id: "",
-    condition_type: "PTA",
-    status: "Open",
-    description: "60-day bank statements for all accounts used for reserves",
-    assigned_to: "Loan Officer",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "4",
-    loan_id: "",
-    condition_type: "PTD",
-    status: "Open",
-    description: "Satisfactory appraisal showing value ≥ $485,000",
-    due_date: "2026-04-10",
-    assigned_to: "Processor",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "5",
-    loan_id: "",
-    condition_type: "PTD",
-    status: "Waived",
-    description: "Flood zone determination certificate",
-    assigned_to: "Closer",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "6",
-    loan_id: "",
-    condition_type: "PTF",
-    status: "Open",
-    description: "Final 1003 signed by all borrowers",
-    due_date: "2026-04-20",
-    assigned_to: "Loan Officer",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "7",
-    loan_id: "",
-    condition_type: "PTF",
-    status: "Open",
-    description: "Clear-to-close issued by underwriter",
-    assigned_to: "Underwriter",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+import {
+  getConditions,
+  createCondition,
+  updateCondition,
+  deleteCondition,
+} from "@/services/api";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -138,9 +61,10 @@ interface ConditionModalProps {
   initial?: Condition;
   onSave: (data: ConditionFormData) => void;
   onClose: () => void;
+  isSaving: boolean;
 }
 
-function ConditionModal({ initial, onSave, onClose }: ConditionModalProps) {
+function ConditionModal({ initial, onSave, onClose, isSaving }: ConditionModalProps) {
   const [form, setForm] = useState<ConditionFormData>({
     condition_type: initial?.condition_type ?? "PTA",
     description: initial?.description ?? "",
@@ -265,15 +189,17 @@ function ConditionModal({ initial, onSave, onClose }: ConditionModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-neutral-700 border border-neutral-300 rounded-lg hover:bg-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-1"
+              disabled={isSaving}
+              className="px-4 py-2 text-sm font-medium text-neutral-700 border border-neutral-300 rounded-lg hover:bg-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-1 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-1"
+              disabled={isSaving}
+              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-offset-1 disabled:opacity-60"
             >
-              {initial ? "Save Changes" : "Add Condition"}
+              {isSaving ? "Saving…" : initial ? "Save Changes" : "Add Condition"}
             </button>
           </div>
         </form>
@@ -534,10 +460,29 @@ interface ConditionsSectionProps {
 }
 
 export default function ConditionsSection({ loanId }: ConditionsSectionProps) {
-  // Local state (replace with React Query when backend endpoint is available)
-  const [conditions, setConditions] = useState<Condition[]>(
-    SEED_CONDITIONS.map((c) => ({ ...c, loan_id: loanId }))
-  );
+  const queryClient = useQueryClient();
+
+  const { data: conditions = [], isLoading, isError } = useQuery({
+    queryKey: ["conditions", loanId],
+    queryFn: () => getConditions(loanId),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: { condition_type: ConditionType; description: string; due_date?: string; assigned_to?: string }) =>
+      createCondition(loanId, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["conditions", loanId] }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<{ condition_type: ConditionType; description: string; status: ConditionStatus; due_date: string; assigned_to: string }> }) =>
+      updateCondition(loanId, id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["conditions", loanId] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteCondition(loanId, id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["conditions", loanId] }),
+  });
 
   const [modal, setModal] = useState<
     | { mode: "add"; defaultType: ConditionType }
@@ -545,41 +490,53 @@ export default function ConditionsSection({ loanId }: ConditionsSectionProps) {
     | null
   >(null);
 
+  const isMutating = createMutation.isPending || updateMutation.isPending;
+
   function handleSave(data: { condition_type: ConditionType; description: string; due_date: string; assigned_to: string }) {
+    const payload = {
+      condition_type: data.condition_type,
+      description: data.description,
+      due_date: data.due_date || undefined,
+      assigned_to: data.assigned_to || undefined,
+    };
+
     if (modal?.mode === "edit") {
-      setConditions((prev) =>
-        prev.map((c) =>
-          c.id === modal.condition.id
-            ? { ...c, ...data, updated_at: new Date().toISOString() }
-            : c
-        )
+      updateMutation.mutate(
+        { id: modal.condition.id, data: payload },
+        { onSuccess: () => setModal(null) }
       );
     } else {
-      const newCondition: Condition = {
-        id: genId(),
-        loan_id: loanId,
-        condition_type: data.condition_type,
-        status: "Open",
-        description: data.description,
-        due_date: data.due_date || undefined,
-        assigned_to: data.assigned_to || undefined,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      setConditions((prev) => [...prev, newCondition]);
+      createMutation.mutate(payload, { onSuccess: () => setModal(null) });
     }
-    setModal(null);
   }
 
   function handleDelete(id: string) {
-    setConditions((prev) => prev.filter((c) => c.id !== id));
+    deleteMutation.mutate(id);
   }
 
   function handleStatusChange(id: string, status: ConditionStatus) {
-    setConditions((prev) =>
-      prev.map((c) =>
-        c.id === id ? { ...c, status, updated_at: new Date().toISOString() } : c
-      )
+    updateMutation.mutate({ id, data: { status } });
+  }
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-neutral-200 rounded w-48" />
+          <div className="grid grid-cols-4 gap-3">
+            {[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-neutral-200 rounded-xl" />)}
+          </div>
+          {[...Array(3)].map((_, i) => <div key={i} className="h-20 bg-neutral-200 rounded-xl" />)}
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <p className="text-sm text-error">Failed to load conditions. Please refresh and try again.</p>
+      </div>
     );
   }
 
@@ -625,6 +582,7 @@ export default function ConditionsSection({ loanId }: ConditionsSectionProps) {
           initial={modal.mode === "edit" ? modal.condition : undefined}
           onSave={handleSave}
           onClose={() => setModal(null)}
+          isSaving={isMutating}
         />
       )}
     </div>

@@ -156,6 +156,13 @@ class Loan(UUIDMixin, TimestampMixin, Base):
         lazy="select",
         order_by="AUSResult.run_at.desc()",
     )
+    conditions: Mapped[List["Condition"]] = relationship(  # noqa: F821
+        "Condition",
+        back_populates="loan",
+        cascade="all, delete-orphan",
+        lazy="select",
+        order_by="Condition.created_at.asc()",
+    )
 
     def __repr__(self) -> str:
         return f"<Loan id={self.id} number={self.loan_number} status={self.status}>"
