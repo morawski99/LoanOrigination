@@ -6,6 +6,8 @@ import { Badge } from "@/design-system/components";
 import { getLoan, createBorrower } from "@/services/api";
 import type { Loan } from "@/types/loan";
 import EFolderSection from "@/features/documents/EFolderSection";
+import ConditionsSection from "./ConditionsSection";
+import AUSResultsSection from "./AUSResultsSection";
 
 type SectionKey =
   | "overview"
