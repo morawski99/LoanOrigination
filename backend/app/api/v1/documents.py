@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse
@@ -34,8 +33,8 @@ class DocumentUpdateRequest(BaseModel):
 
 
 class DocumentResponse(BaseModel):
-    id: UUID
-    loan_id: UUID
+    id: str
+    loan_id: str
     document_type: str
     document_status: DocumentStatus
     original_filename: str
@@ -62,7 +61,7 @@ class PresignedDownloadResponse(BaseModel):
 # Helper
 # ---------------------------------------------------------------------------
 
-async def _get_loan_or_404(loan_id: UUID, db: AsyncSession) -> Loan:
+async def _get_loan_or_404(loan_id: str, db: AsyncSession) -> Loan:
     result = await db.execute(select(Loan).where(Loan.id == loan_id))
     loan = result.scalar_one_or_none()
     if loan is None:
@@ -83,7 +82,7 @@ async def _get_loan_or_404(loan_id: UUID, db: AsyncSession) -> Loan:
     status_code=status.HTTP_200_OK,
 )
 async def list_documents(
-    loan_id: UUID,
+    loan_id: str,
     document_type: Optional[str] = Query(default=None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -110,7 +109,7 @@ async def list_documents(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_document_record(
-    loan_id: UUID,
+    loan_id: str,
     payload: DocumentCreateRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -141,7 +140,7 @@ async def create_document_record(
     status_code=status.HTTP_200_OK,
 )
 async def get_presigned_upload_url(
-    loan_id: UUID,
+    loan_id: str,
     filename: str = Query(..., description="Original filename for the document"),
     content_type: str = Query(
         default="application/octet-stream",
@@ -283,8 +282,8 @@ async def get_presigned_download_url(
     status_code=status.HTTP_200_OK,
 )
 async def update_document(
-    loan_id: UUID,
-    document_id: UUID,
+    loan_id: str,
+    document_id: str,
     payload: DocumentUpdateRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -310,10 +309,8 @@ async def update_document(
     if payload.document_status is not None:
         document.document_status = payload.document_status
         if payload.document_status == DocumentStatus.RECEIVED and document.uploaded_at is None:
-            from datetime import datetime, timezone
             document.uploaded_at = datetime.now(timezone.utc)
         elif payload.document_status in (DocumentStatus.REVIEWED, DocumentStatus.ACCEPTED, DocumentStatus.REJECTED):
-            from datetime import datetime, timezone
             document.reviewed_at = datetime.now(timezone.utc)
             document.reviewed_by_id = current_user.id
     if payload.s3_key is not None:

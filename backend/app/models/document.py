@@ -1,10 +1,8 @@
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
-from uuid import UUID
 
 from sqlalchemy import String, Enum as SAEnum, ForeignKey, DateTime
-from sqlalchemy import String
 from sqlalchemy.orm import mapped_column, MappedColumn, relationship, Mapped
 
 from app.models.base import Base, UUIDMixin, TimestampMixin
@@ -26,7 +24,7 @@ class Document(UUIDMixin, Base):
     __tablename__ = "documents"
 
     # Core associations
-    loan_id: MappedColumn[UUID] = mapped_column(
+    loan_id: MappedColumn[str] = mapped_column(
         String(36),
         ForeignKey("loans.id", ondelete="CASCADE"),
         nullable=False,
@@ -57,12 +55,12 @@ class Document(UUIDMixin, Base):
     )
 
     # User tracking
-    uploaded_by_id: MappedColumn[Optional[UUID]] = mapped_column(
+    uploaded_by_id: MappedColumn[Optional[str]] = mapped_column(
         String(36),
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    reviewed_by_id: MappedColumn[Optional[UUID]] = mapped_column(
+    reviewed_by_id: MappedColumn[Optional[str]] = mapped_column(
         String(36),
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
@@ -80,7 +78,7 @@ class Document(UUIDMixin, Base):
     created_at: MappedColumn[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        server_default="now()",
+        default=lambda: datetime.now(timezone.utc),
     )
 
     # Relationships

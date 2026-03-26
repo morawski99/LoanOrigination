@@ -4,7 +4,6 @@ All endpoints require authentication and verify loan/borrower ownership.
 """
 from datetime import date
 from typing import List, Optional
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -64,7 +63,7 @@ router = APIRouter(tags=["urla"])
 # Helper functions
 # ---------------------------------------------------------------------------
 
-async def _get_loan_or_404(loan_id: UUID, db: AsyncSession) -> Loan:
+async def _get_loan_or_404(loan_id: str, db: AsyncSession) -> Loan:
     result = await db.execute(select(Loan).where(Loan.id == loan_id))
     loan = result.scalar_one_or_none()
     if loan is None:
@@ -76,7 +75,7 @@ async def _get_loan_or_404(loan_id: UUID, db: AsyncSession) -> Loan:
 
 
 async def _get_borrower_or_404(
-    loan_id: UUID, borrower_id: UUID, db: AsyncSession
+    loan_id: str, borrower_id: str, db: AsyncSession
 ) -> Borrower:
     result = await db.execute(
         select(Borrower).where(
@@ -202,11 +201,11 @@ def _compute_urla_progress(borrower: Borrower, loan: Optional[Loan] = None) -> U
 
 async def _create_audit(
     db: AsyncSession,
-    loan_id: UUID,
-    user_id: UUID,
+    loan_id: str,
+    user_id: str,
     action: str,
     entity_type: str,
-    entity_id: UUID,
+    entity_id: str,
     before_value: Optional[dict] = None,
     after_value: Optional[dict] = None,
     request: Optional[Request] = None,
@@ -234,7 +233,7 @@ async def _create_audit(
     status_code=status.HTTP_200_OK,
 )
 async def get_urla_progress(
-    loan_id: UUID,
+    loan_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> URLAProgress:
@@ -317,8 +316,8 @@ async def create_borrower(
     status_code=status.HTTP_200_OK,
 )
 async def get_full_borrower(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> FullBorrowerResponse:
@@ -338,8 +337,8 @@ async def get_full_borrower(
     status_code=status.HTTP_200_OK,
 )
 async def update_personal_info(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     payload: BorrowerPersonalInfoUpdate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -385,8 +384,8 @@ async def update_personal_info(
     status_code=status.HTTP_200_OK,
 )
 async def list_residences(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> List[ResidenceResponse]:
@@ -405,8 +404,8 @@ async def list_residences(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_residence(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     payload: ResidenceCreate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -441,9 +440,9 @@ async def create_residence(
     status_code=status.HTTP_200_OK,
 )
 async def update_residence(
-    loan_id: UUID,
-    borrower_id: UUID,
-    residence_id: UUID,
+    loan_id: str,
+    borrower_id: str,
+    residence_id: str,
     payload: ResidenceUpdate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -492,9 +491,9 @@ async def update_residence(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_residence(
-    loan_id: UUID,
-    borrower_id: UUID,
-    residence_id: UUID,
+    loan_id: str,
+    borrower_id: str,
+    residence_id: str,
     request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -536,8 +535,8 @@ async def delete_residence(
     status_code=status.HTTP_200_OK,
 )
 async def list_employments(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> List[EmploymentResponse]:
@@ -556,8 +555,8 @@ async def list_employments(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_employment(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     payload: EmploymentCreate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -596,9 +595,9 @@ async def create_employment(
     status_code=status.HTTP_200_OK,
 )
 async def update_employment(
-    loan_id: UUID,
-    borrower_id: UUID,
-    employment_id: UUID,
+    loan_id: str,
+    borrower_id: str,
+    employment_id: str,
     payload: EmploymentUpdate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -647,9 +646,9 @@ async def update_employment(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_employment(
-    loan_id: UUID,
-    borrower_id: UUID,
-    employment_id: UUID,
+    loan_id: str,
+    borrower_id: str,
+    employment_id: str,
     request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -691,8 +690,8 @@ async def delete_employment(
     status_code=status.HTTP_200_OK,
 )
 async def list_other_incomes(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> List[OtherIncomeResponse]:
@@ -711,8 +710,8 @@ async def list_other_incomes(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_other_income(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     payload: OtherIncomeCreate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -750,9 +749,9 @@ async def create_other_income(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_other_income(
-    loan_id: UUID,
-    borrower_id: UUID,
-    income_id: UUID,
+    loan_id: str,
+    borrower_id: str,
+    income_id: str,
     request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -794,8 +793,8 @@ async def delete_other_income(
     status_code=status.HTTP_200_OK,
 )
 async def list_assets(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> List[AssetResponse]:
@@ -814,8 +813,8 @@ async def list_assets(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_asset(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     payload: AssetCreate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -854,9 +853,9 @@ async def create_asset(
     status_code=status.HTTP_200_OK,
 )
 async def update_asset(
-    loan_id: UUID,
-    borrower_id: UUID,
-    asset_id: UUID,
+    loan_id: str,
+    borrower_id: str,
+    asset_id: str,
     payload: AssetUpdate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -905,9 +904,9 @@ async def update_asset(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_asset(
-    loan_id: UUID,
-    borrower_id: UUID,
-    asset_id: UUID,
+    loan_id: str,
+    borrower_id: str,
+    asset_id: str,
     request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -949,8 +948,8 @@ async def delete_asset(
     status_code=status.HTTP_200_OK,
 )
 async def list_liabilities(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> List[LiabilityResponse]:
@@ -969,8 +968,8 @@ async def list_liabilities(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_liability(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     payload: LiabilityCreate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -1008,9 +1007,9 @@ async def create_liability(
     status_code=status.HTTP_200_OK,
 )
 async def update_liability(
-    loan_id: UUID,
-    borrower_id: UUID,
-    liability_id: UUID,
+    loan_id: str,
+    borrower_id: str,
+    liability_id: str,
     payload: LiabilityUpdate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -1059,9 +1058,9 @@ async def update_liability(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_liability(
-    loan_id: UUID,
-    borrower_id: UUID,
-    liability_id: UUID,
+    loan_id: str,
+    borrower_id: str,
+    liability_id: str,
     request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -1103,8 +1102,8 @@ async def delete_liability(
     status_code=status.HTTP_200_OK,
 )
 async def list_reo(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> List[REOResponse]:
@@ -1123,8 +1122,8 @@ async def list_reo(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_reo(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     payload: REOCreate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -1162,9 +1161,9 @@ async def create_reo(
     status_code=status.HTTP_200_OK,
 )
 async def update_reo(
-    loan_id: UUID,
-    borrower_id: UUID,
-    reo_id: UUID,
+    loan_id: str,
+    borrower_id: str,
+    reo_id: str,
     payload: REOUpdate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -1213,9 +1212,9 @@ async def update_reo(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_reo(
-    loan_id: UUID,
-    borrower_id: UUID,
-    reo_id: UUID,
+    loan_id: str,
+    borrower_id: str,
+    reo_id: str,
     request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -1257,8 +1256,8 @@ async def delete_reo(
     status_code=status.HTTP_200_OK,
 )
 async def get_declarations(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> Optional[DeclarationResponse]:
@@ -1279,8 +1278,8 @@ async def get_declarations(
     status_code=status.HTTP_200_OK,
 )
 async def upsert_declarations(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     payload: DeclarationUpsert,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -1330,8 +1329,8 @@ async def upsert_declarations(
     status_code=status.HTTP_200_OK,
 )
 async def get_military_service(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> Optional[MilitaryServiceResponse]:
@@ -1352,8 +1351,8 @@ async def get_military_service(
     status_code=status.HTTP_200_OK,
 )
 async def upsert_military_service(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     payload: MilitaryServiceUpsert,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -1403,8 +1402,8 @@ async def upsert_military_service(
     status_code=status.HTTP_200_OK,
 )
 async def get_demographics(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> Optional[DemographicsResponse]:
@@ -1425,8 +1424,8 @@ async def get_demographics(
     status_code=status.HTTP_200_OK,
 )
 async def upsert_demographics(
-    loan_id: UUID,
-    borrower_id: UUID,
+    loan_id: str,
+    borrower_id: str,
     payload: DemographicsUpsert,
     request: Request,
     db: AsyncSession = Depends(get_db),

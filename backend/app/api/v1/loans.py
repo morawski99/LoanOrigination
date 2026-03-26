@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 from typing import Optional
-from uuid import UUID, uuid4
+from uuid import uuid4
 import random
 import string
 
@@ -219,7 +219,7 @@ async def create_loan(
 
 @router.get("/{loan_id}", response_model=LoanResponse, status_code=status.HTTP_200_OK)
 async def get_loan(
-    loan_id: UUID,
+    loan_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> LoanResponse:
@@ -240,7 +240,7 @@ async def get_loan(
 
 @router.patch("/{loan_id}", response_model=LoanResponse, status_code=status.HTTP_200_OK)
 async def update_loan(
-    loan_id: UUID,
+    loan_id: str,
     payload: LoanUpdate,
     request: Request,
     db: AsyncSession = Depends(get_db),

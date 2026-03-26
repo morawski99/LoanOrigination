@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from sqlalchemy import String, DateTime, func
 from sqlalchemy import String, JSON
@@ -24,13 +24,13 @@ class AuditLog(Base):
     )
 
     # Context
-    loan_id: MappedColumn[Optional[UUID]] = mapped_column(
+    loan_id: MappedColumn[Optional[str]] = mapped_column(
         String(36),
         nullable=True,
         index=True,
         comment="FK to loans.id — nullable for non-loan actions",
     )
-    user_id: MappedColumn[Optional[UUID]] = mapped_column(
+    user_id: MappedColumn[Optional[str]] = mapped_column(
         String(36),
         nullable=True,
         index=True,
@@ -51,7 +51,7 @@ class AuditLog(Base):
         nullable=False,
         comment="Entity type, e.g. 'loan', 'borrower', 'document'",
     )
-    entity_id: MappedColumn[UUID] = mapped_column(
+    entity_id: MappedColumn[str] = mapped_column(
         String(36),
         nullable=False,
         comment="UUID of the affected entity",

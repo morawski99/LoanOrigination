@@ -1,29 +1,27 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
-from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt as _bcrypt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.database import get_db
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def hash_password(password: str) -> str:
     """Hash a plain-text password using bcrypt."""
-    return pwd_context.hash(password)
+    return _bcrypt.hashpw(password.encode(), _bcrypt.gensalt()).decode()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain-text password against a bcrypt hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    return _bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
 
 
 def create_access_token(
@@ -83,12 +81,8 @@ async def get_current_user(
     if not user_id_str:
         raise credentials_exception
 
-    try:
-        user_id = UUID(user_id_str)
-    except ValueError:
-        raise credentials_exception
-
-    result = await db.execute(select(User).where(User.id == str(user_id)))
+    # IDs are stored as String(36) with hyphens; compare directly as string
+    result = await db.execute(select(User).where(User.id == user_id_str))
     user = result.scalar_one_or_none()
 
     if user is None or not user.is_active:
