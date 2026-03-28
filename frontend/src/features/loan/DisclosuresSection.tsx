@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   FileSignature,
@@ -679,7 +679,7 @@ function CreateLEForm({
           sort_order: i,
         })),
       }),
-    onSuccess: (le) => onCreated(le),
+    onSuccess: (le: LoanEstimate) => onCreated(le),
   });
 
   return (

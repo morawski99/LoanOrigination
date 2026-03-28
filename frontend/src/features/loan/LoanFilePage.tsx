@@ -8,6 +8,7 @@ import type { Loan } from "@/types/loan";
 import EFolderSection from "@/features/documents/EFolderSection";
 import ConditionsSection from "./ConditionsSection";
 import AUSResultsSection from "./AUSResultsSection";
+import DisclosuresSection from "./DisclosuresSection";
 import ClosingSection from "./ClosingSection";
 
 type SectionKey =
@@ -503,25 +504,6 @@ function BorrowersSection({ loan }: { loan: Loan }) {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function PlaceholderSection({ title }: { title: string }) {
-  return (
-    <div className="p-6">
-      <h2 className="text-xl font-semibold text-neutral-900 mb-4">{title}</h2>
-      <div className="card p-12 flex flex-col items-center justify-center text-center">
-        <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center mb-4">
-          <FileText className="w-7 h-7 text-primary-600" />
-        </div>
-        <p className="text-neutral-600 font-medium">
-          {title} section coming soon
-        </p>
-        <p className="text-sm text-neutral-400 mt-1">
-          This section is under active development.
-        </p>
-      </div>
     </div>
   );
 }
