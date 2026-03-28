@@ -12,6 +12,22 @@ import type {
 } from "@/types/loan";
 import type { UserResponse } from "@/types/user";
 import type {
+  ClosingDisclosure,
+  CDListItem,
+  CDCreatePayload,
+  CDUpdatePayload,
+  CDIssuePayload,
+  CDFeeCreate,
+  ToleranceCheckResult,
+  ChecklistItem,
+  ChecklistItemCreatePayload,
+  ChecklistItemUpdatePayload,
+  WireInstruction,
+  WireInstructionPayload,
+  FundingStatusData,
+  FundingStatusPayload,
+} from "@/types/closing";
+import type {
   LoanEstimate,
   LoanEstimateListItem,
   TRIDStatus,
@@ -562,6 +578,161 @@ export async function getDocumentDownloadUrl(
 ): Promise<{ download_url: string; expires_in_seconds: number }> {
   const response = await apiClient.get(
     `/loans/${loanId}/documents/${documentId}/download-url`
+  );
+  return response.data;
+}
+
+// ─── Closing: Closing Disclosures ────────────────────────────────────────────
+
+export async function getClosingDisclosures(loanId: string): Promise<CDListItem[]> {
+  const response: AxiosResponse<CDListItem[]> = await apiClient.get(
+    `/loans/${loanId}/closing/disclosures`
+  );
+  return response.data;
+}
+
+export async function createClosingDisclosure(
+  loanId: string,
+  data: CDCreatePayload
+): Promise<ClosingDisclosure> {
+  const response: AxiosResponse<ClosingDisclosure> = await apiClient.post(
+    `/loans/${loanId}/closing/disclosures`,
+    data
+  );
+  return response.data;
+}
+
+export async function getClosingDisclosure(
+  loanId: string,
+  cdId: string
+): Promise<ClosingDisclosure> {
+  const response: AxiosResponse<ClosingDisclosure> = await apiClient.get(
+    `/loans/${loanId}/closing/disclosures/${cdId}`
+  );
+  return response.data;
+}
+
+export async function updateClosingDisclosure(
+  loanId: string,
+  cdId: string,
+  data: CDUpdatePayload
+): Promise<ClosingDisclosure> {
+  const response: AxiosResponse<ClosingDisclosure> = await apiClient.patch(
+    `/loans/${loanId}/closing/disclosures/${cdId}`,
+    data
+  );
+  return response.data;
+}
+
+export async function replaceCDFees(
+  loanId: string,
+  cdId: string,
+  fees: CDFeeCreate[]
+): Promise<ClosingDisclosure> {
+  const response: AxiosResponse<ClosingDisclosure> = await apiClient.put(
+    `/loans/${loanId}/closing/disclosures/${cdId}/fees`,
+    fees
+  );
+  return response.data;
+}
+
+export async function issueClosingDisclosure(
+  loanId: string,
+  cdId: string,
+  data: CDIssuePayload
+): Promise<ClosingDisclosure> {
+  const response: AxiosResponse<ClosingDisclosure> = await apiClient.post(
+    `/loans/${loanId}/closing/disclosures/${cdId}/issue`,
+    data
+  );
+  return response.data;
+}
+
+export async function getToleranceCheck(
+  loanId: string,
+  cdId: string
+): Promise<ToleranceCheckResult> {
+  const response: AxiosResponse<ToleranceCheckResult> = await apiClient.get(
+    `/loans/${loanId}/closing/disclosures/${cdId}/tolerance-check`
+  );
+  return response.data;
+}
+
+// ─── Closing: Checklist ──────────────────────────────────────────────────────
+
+export async function getClosingChecklist(loanId: string): Promise<ChecklistItem[]> {
+  const response: AxiosResponse<ChecklistItem[]> = await apiClient.get(
+    `/loans/${loanId}/closing/checklist`
+  );
+  return response.data;
+}
+
+export async function createChecklistItem(
+  loanId: string,
+  data: ChecklistItemCreatePayload
+): Promise<ChecklistItem> {
+  const response: AxiosResponse<ChecklistItem> = await apiClient.post(
+    `/loans/${loanId}/closing/checklist`,
+    data
+  );
+  return response.data;
+}
+
+export async function updateChecklistItem(
+  loanId: string,
+  itemId: string,
+  data: ChecklistItemUpdatePayload
+): Promise<ChecklistItem> {
+  const response: AxiosResponse<ChecklistItem> = await apiClient.patch(
+    `/loans/${loanId}/closing/checklist/${itemId}`,
+    data
+  );
+  return response.data;
+}
+
+export async function deleteChecklistItem(
+  loanId: string,
+  itemId: string
+): Promise<void> {
+  await apiClient.delete(`/loans/${loanId}/closing/checklist/${itemId}`);
+}
+
+// ─── Closing: Wire Instructions ──────────────────────────────────────────────
+
+export async function getWireInstructions(loanId: string): Promise<WireInstruction> {
+  const response: AxiosResponse<WireInstruction> = await apiClient.get(
+    `/loans/${loanId}/closing/wire-instructions`
+  );
+  return response.data;
+}
+
+export async function upsertWireInstructions(
+  loanId: string,
+  data: WireInstructionPayload
+): Promise<WireInstruction> {
+  const response: AxiosResponse<WireInstruction> = await apiClient.put(
+    `/loans/${loanId}/closing/wire-instructions`,
+    data
+  );
+  return response.data;
+}
+
+// ─── Closing: Funding Status ─────────────────────────────────────────────────
+
+export async function getFundingStatus(loanId: string): Promise<FundingStatusData> {
+  const response: AxiosResponse<FundingStatusData> = await apiClient.get(
+    `/loans/${loanId}/closing/funding`
+  );
+  return response.data;
+}
+
+export async function upsertFundingStatus(
+  loanId: string,
+  data: FundingStatusPayload
+): Promise<FundingStatusData> {
+  const response: AxiosResponse<FundingStatusData> = await apiClient.put(
+    `/loans/${loanId}/closing/funding`,
+    data
   );
   return response.data;
 }

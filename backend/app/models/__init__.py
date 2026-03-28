@@ -24,6 +24,17 @@ from app.models.loan_estimate import (
     SECTION_TOLERANCE,
 )
 from app.models.condition import Condition, ConditionType, ConditionStatus
+from app.models.closing import (
+    ClosingDisclosure,
+    ClosingDisclosureFee,
+    CDStatus,
+    ChecklistCategory,
+    ChecklistItemStatus,
+    ClosingChecklist,
+    WireInstruction,
+    FundingStatus,
+    FundingStatusType,
+)
 
 __all__ = [
     "Base",
@@ -70,4 +81,13 @@ __all__ = [
     "Condition",
     "ConditionType",
     "ConditionStatus",
+    "ClosingDisclosure",
+    "ClosingDisclosureFee",
+    "CDStatus",
+    "ChecklistCategory",
+    "ChecklistItemStatus",
+    "ClosingChecklist",
+    "WireInstruction",
+    "FundingStatus",
+    "FundingStatusType",
 ]

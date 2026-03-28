@@ -8,6 +8,7 @@ import type { Loan } from "@/types/loan";
 import EFolderSection from "@/features/documents/EFolderSection";
 import ConditionsSection from "./ConditionsSection";
 import AUSResultsSection from "./AUSResultsSection";
+import ClosingSection from "./ClosingSection";
 
 type SectionKey =
   | "overview"
@@ -691,7 +692,7 @@ export default function LoanFilePage() {
             <DisclosuresSection loan={loan} />
           )}
           {activeSection === "closing" && (
-            <PlaceholderSection title="Closing" />
+            <ClosingSection loanId={loan.id} />
           )}
         </main>
       </div>

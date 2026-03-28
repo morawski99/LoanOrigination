@@ -8,6 +8,7 @@ from app.api.v1.urla import router as urla_router
 from app.api.v1.loan_estimates import router as loan_estimates_router
 from app.api.v1.conditions import router as conditions_router
 from app.api.v1.aus import router as aus_router
+from app.api.v1.closing import router as closing_router
 
 api_router = APIRouter()
 
@@ -19,3 +20,4 @@ api_router.include_router(urla_router, prefix="/loans", tags=["urla"])
 api_router.include_router(loan_estimates_router)
 api_router.include_router(conditions_router, prefix="/loans", tags=["conditions"])
 api_router.include_router(aus_router, prefix="/loans", tags=["aus"])
+api_router.include_router(closing_router)
