@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -437,7 +437,6 @@ export default function NewLoanPage() {
               <div>
                 <Input
                   label="Loan Amount"
-                  name="loan_amount"
                   type="text"
                   inputMode="numeric"
                   required
@@ -455,7 +454,6 @@ export default function NewLoanPage() {
                 </h3>
                 <Input
                   label="Street Address"
-                  name="property_address_line"
                   required
                   placeholder="e.g. 123 Main Street"
                   error={errors1.property_address_line?.message}
@@ -465,7 +463,6 @@ export default function NewLoanPage() {
                   <div className="col-span-3">
                     <Input
                       label="City"
-                      name="property_city"
                       required
                       placeholder="e.g. Columbus"
                       error={errors1.property_city?.message}
@@ -475,7 +472,6 @@ export default function NewLoanPage() {
                   <div className="col-span-1">
                     <Input
                       label="State"
-                      name="property_state"
                       required
                       placeholder="OH"
                       maxLength={2}
@@ -486,7 +482,6 @@ export default function NewLoanPage() {
                   <div className="col-span-2">
                     <Input
                       label="ZIP Code"
-                      name="property_zip"
                       required
                       placeholder="43215"
                       inputMode="numeric"
@@ -535,7 +530,6 @@ export default function NewLoanPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   label="First Name"
-                  name="first_name"
                   required
                   placeholder="Jane"
                   autoComplete="given-name"
@@ -544,7 +538,6 @@ export default function NewLoanPage() {
                 />
                 <Input
                   label="Last Name"
-                  name="last_name"
                   required
                   placeholder="Smith"
                   autoComplete="family-name"
@@ -555,7 +548,6 @@ export default function NewLoanPage() {
 
               <Input
                 label="Middle Name"
-                name="middle_name"
                 placeholder="Optional"
                 autoComplete="additional-name"
                 error={errors2.middle_name?.message}
@@ -564,7 +556,6 @@ export default function NewLoanPage() {
 
               <Input
                 label="Email Address"
-                name="email"
                 type="email"
                 required
                 placeholder="jane.smith@email.com"
@@ -575,7 +566,6 @@ export default function NewLoanPage() {
 
               <Input
                 label="Phone Number"
-                name="phone"
                 type="tel"
                 required
                 placeholder="(555) 123-4567"

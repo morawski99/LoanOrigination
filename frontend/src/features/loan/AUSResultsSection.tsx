@@ -635,7 +635,6 @@ function HistoryRow({
   isActive: boolean;
   onSelect: () => void;
 }) {
-  const cfg = FINDING_CONFIG[result.finding];
   return (
     <button
       type="button"

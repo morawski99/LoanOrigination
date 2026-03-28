@@ -10,7 +10,6 @@ import {
   DateInput,
   PhoneInput,
   FormSection,
-  AddressFields,
   Checkbox,
   Button,
 } from "@/design-system/components";
@@ -20,7 +19,7 @@ import {
   type EmploymentFormData,
 } from "../validation/employmentSchema";
 import { EmploymentStatusType, OtherIncomeType } from "@/types/urla";
-import type { FullBorrower, BorrowerEmployment, OtherIncome } from "@/types/urla";
+import type { FullBorrower, BorrowerEmployment, OtherIncome, EmploymentCreate } from "@/types/urla";
 import type { UseURLAFormReturn } from "../hooks/useURLAForm";
 
 interface Section2Props {
@@ -117,7 +116,7 @@ export const Section2Employment: React.FC<Section2Props> = ({
           <EmploymentEntryForm
             isCurrent
             onSave={(data) => {
-              saveEmployment({ ...data, is_current: true });
+              saveEmployment({ ...data, is_current: true, is_primary: data.is_primary ?? true, employment_status_type: data.employment_status_type! } as EmploymentCreate);
               setShowAddEmployment(false);
             }}
             onCancel={() => setShowAddEmployment(false)}
@@ -168,7 +167,7 @@ export const Section2Employment: React.FC<Section2Props> = ({
           )}
 
           <PreviousEmploymentForm
-            onSave={(data) => saveEmployment({ ...data, is_current: false })}
+            onSave={(data) => saveEmployment({ ...data, is_current: false, is_primary: data.is_primary ?? false, employment_status_type: data.employment_status_type! } as EmploymentCreate)}
           />
         </FormSection>
       )}
@@ -292,7 +291,6 @@ function EmploymentEntryForm({ isCurrent, onSave, onCancel }: EmploymentEntryFor
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="Employer / Business Name"
-              name="employer_name"
               required
               error={errors.employer_name?.message}
               {...register("employer_name")}
@@ -314,7 +312,6 @@ function EmploymentEntryForm({ isCurrent, onSave, onCancel }: EmploymentEntryFor
 
           <Input
             label="Position / Title"
-            name="position_description"
             error={errors.position_description?.message}
             {...register("position_description")}
           />
@@ -370,7 +367,6 @@ function EmploymentEntryForm({ isCurrent, onSave, onCancel }: EmploymentEntryFor
             <div className="max-w-xs">
               <Input
                 label="Ownership Interest %"
-                name="ownership_interest_percent"
                 type="number"
                 min={0}
                 max={100}

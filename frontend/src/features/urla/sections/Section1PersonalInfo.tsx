@@ -11,9 +11,9 @@ import {
   PhoneInput,
   SSNInput,
   FormSection,
-  AddressFields,
   Checkbox,
   Button,
+  AddressFields,
 } from "@/design-system/components";
 import {
   personalInfoSchema,
@@ -164,7 +164,6 @@ export const Section1PersonalInfo: React.FC<Section1Props> = ({
           <div className="sm:col-span-1">
             <Input
               label="First Name"
-              name="first_name"
               required
               error={errors.first_name?.message}
               {...register("first_name", { onBlur: handleFieldBlur })}
@@ -173,7 +172,6 @@ export const Section1PersonalInfo: React.FC<Section1Props> = ({
           <div className="sm:col-span-1">
             <Input
               label="Middle Name"
-              name="middle_name"
               error={errors.middle_name?.message}
               {...register("middle_name", { onBlur: handleFieldBlur })}
             />
@@ -181,7 +179,6 @@ export const Section1PersonalInfo: React.FC<Section1Props> = ({
           <div className="sm:col-span-1">
             <Input
               label="Last Name"
-              name="last_name"
               required
               error={errors.last_name?.message}
               {...register("last_name", { onBlur: handleFieldBlur })}
@@ -317,7 +314,6 @@ export const Section1PersonalInfo: React.FC<Section1Props> = ({
         {numberOfDependents !== undefined && numberOfDependents > 0 && (
           <Input
             label="Ages of Dependents"
-            name="dependent_ages_description"
             placeholder='e.g. "3, 7, 12"'
             helperText="Enter ages separated by commas"
             error={errors.dependent_ages_description?.message}
@@ -330,7 +326,6 @@ export const Section1PersonalInfo: React.FC<Section1Props> = ({
       <FormSection title="Contact Information">
         <Input
           label="Email Address"
-          name="email"
           type="email"
           required
           error={errors.email?.message}

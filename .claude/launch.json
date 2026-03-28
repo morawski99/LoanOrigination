@@ -7,7 +7,7 @@
       "runtimeExecutable": "/bin/sh",
       "runtimeArgs": [
         "-c",
-        "export PATH=/Users/markmorawski/Library/Caches/ms-playwright-go/1.50.1:$PATH && cd /Users/markmorawski/LoanOrigination/.claude/worktrees/exciting-khayyam/frontend && npm install && npm run dev -- --host 0.0.0.0 --port $PORT"
+        "export PATH=/Users/markmorawski/.local/node/bin:$PATH && cd /Users/markmorawski/LoanOrigination/frontend && npm run dev -- --host 0.0.0.0 --port $PORT"
       ],
       "port": 5173
     },

@@ -645,6 +645,45 @@ export async function updateDocument(
   return response.data;
 }
 
+export async function deleteDocument(
+  loanId: string,
+  documentId: string
+): Promise<void> {
+  await apiClient.delete(`/loans/${loanId}/documents/${documentId}`);
+}
+
+export async function uploadDocumentFile(
+  loanId: string,
+  documentId: string,
+  file: File,
+  onProgress?: (percent: number) => void
+): Promise<void> {
+  // Get a presigned upload URL
+  const { upload_url, s3_key } = await getDocumentUploadUrl(
+    loanId,
+    file.name,
+    file.type || "application/octet-stream"
+  );
+  // Upload the file directly to S3
+  await axios.put(upload_url, file, {
+    headers: { "Content-Type": file.type || "application/octet-stream" },
+    onUploadProgress: (e) => {
+      if (onProgress && e.total) {
+        onProgress(Math.round((e.loaded * 100) / e.total));
+      }
+    },
+  });
+  // Update the document record with the S3 key
+  await updateDocument(loanId, documentId, { s3_key });
+}
+
+export function getDocumentFileUrl(
+  loanId: string,
+  documentId: string
+): string {
+  return `${BASE_URL}/loans/${loanId}/documents/${documentId}/download-url`;
+}
+
 export async function getDocumentUploadUrl(
   loanId: string,
   filename: string,

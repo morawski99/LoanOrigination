@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getURLAProgress,
   getFullBorrower,
@@ -87,7 +87,7 @@ export interface UseURLAFormReturn {
   saveDemographics: (data: DemographicsUpsert) => Promise<void>;
 
   // Debounced auto-save trigger
-  triggerAutoSave: (saveFn: () => Promise<void>) => void;
+  triggerAutoSave: (saveFn: () => Promise<unknown>) => void;
 }
 
 export function useURLAForm({
@@ -132,7 +132,7 @@ export function useURLAForm({
 
   // Generic mutation helper that tracks auto-save status
   const withAutoSave = useCallback(
-    async (fn: () => Promise<void>): Promise<void> => {
+    async (fn: () => Promise<unknown>): Promise<void> => {
       setAutoSaveStatus("saving");
       try {
         await fn();
@@ -152,7 +152,7 @@ export function useURLAForm({
 
   // Debounced auto-save: waits 1500ms before triggering
   const triggerAutoSave = useCallback(
-    (saveFn: () => Promise<void>) => {
+    (saveFn: () => Promise<unknown>) => {
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }

@@ -23,7 +23,8 @@ import {
   deleteDocument,
   getDocumentFileUrl,
 } from "@/services/api";
-import type { Document as LoanDocument, DocumentStatus } from "@/types/loan";
+import type { Document as LoanDocument } from "@/types/loan";
+import { DocumentStatus } from "@/types/loan";
 
 // ─── Document category definitions ───────────────────────────────────────────
 
@@ -276,7 +277,7 @@ function DocumentRow({ loanId, doc, onRefresh }: DocumentRowProps) {
         {doc.document_status === "Received" && (
           <button
             type="button"
-            onClick={() => statusMutation.mutate("Reviewed")}
+            onClick={() => statusMutation.mutate(DocumentStatus.REVIEWED)}
             disabled={statusMutation.isPending}
             title="Mark Reviewed"
             className="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-1 disabled:opacity-50"
@@ -285,11 +286,11 @@ function DocumentRow({ loanId, doc, onRefresh }: DocumentRowProps) {
           </button>
         )}
 
-        {doc.document_status === "Reviewed" && (
+        {doc.document_status === DocumentStatus.REVIEWED && (
           <>
             <button
               type="button"
-              onClick={() => statusMutation.mutate("Accepted")}
+              onClick={() => statusMutation.mutate(DocumentStatus.ACCEPTED)}
               disabled={statusMutation.isPending}
               title="Accept"
               className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-1 disabled:opacity-50"
@@ -298,7 +299,7 @@ function DocumentRow({ loanId, doc, onRefresh }: DocumentRowProps) {
             </button>
             <button
               type="button"
-              onClick={() => statusMutation.mutate("Rejected")}
+              onClick={() => statusMutation.mutate(DocumentStatus.REJECTED)}
               disabled={statusMutation.isPending}
               title="Reject"
               className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-1 disabled:opacity-50"
@@ -555,10 +556,10 @@ function CategoryGroup({ category, docs, loanId, onRefresh }: CategoryGroupProps
 
 function SummaryTiles({ docs }: { docs: LoanDocument[] }) {
   const total = docs.length;
-  const requested = docs.filter((d) => d.document_status === "Requested").length;
-  const received = docs.filter((d) => d.document_status === "Received").length;
-  const accepted = docs.filter((d) => d.document_status === "Accepted").length;
-  const rejected = docs.filter((d) => d.document_status === "Rejected").length;
+  const requested = docs.filter((d) => d.document_status === DocumentStatus.REQUESTED).length;
+  const received = docs.filter((d) => d.document_status === DocumentStatus.RECEIVED).length;
+  const accepted = docs.filter((d) => d.document_status === DocumentStatus.ACCEPTED).length;
+  const rejected = docs.filter((d) => d.document_status === DocumentStatus.REJECTED).length;
 
   const tiles = [
     { label: "Total", value: total, color: "text-neutral-900", bg: "bg-neutral-50 border-neutral-200" },
@@ -594,7 +595,7 @@ function GlobalDropZone({ loanId, onUploaded }: GlobalDropZoneProps) {
   const [selectedType, setSelectedType] = useState("Miscellaneous");
   const queryClient = useQueryClient();
 
-  const allTypes = CATEGORIES.flatMap((c) => c.types as string[]);
+  const allTypes = CATEGORIES.flatMap((c) => [...c.types] as string[]);
 
   async function handleFiles(files: FileList) {
     if (!files.length) return;

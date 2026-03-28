@@ -35,7 +35,6 @@ import {
   MISMO_CATEGORIES,
   getCategoryForType,
   getLabelForType,
-  getAllTypesFlat,
 } from "./mismoTypes";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -195,8 +194,6 @@ function UploadModal({ loanId, onClose, onSuccess }: UploadModalProps) {
   const [errorMsg, setErrorMsg] = useState("");
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const allTypes = getAllTypesFlat();
-
   const handleFile = (f: File) => setFile(f);
 
   const handleDrop = (e: React.DragEvent) => {
@@ -500,7 +497,6 @@ function DocumentViewer({
   }
 
   const fileType = getFileType(selectedDoc.original_filename);
-  const cfg = statusConfig(selectedDoc.document_status);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
