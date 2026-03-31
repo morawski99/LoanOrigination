@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from app.models.user import UserRole
@@ -25,6 +25,17 @@ class UserResponse(BaseModel):
     is_active: bool
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserListResponse(BaseModel):
+    items: List[UserResponse]
+    total: int
+    skip: int
+    limit: int
+
+
+class ResetPasswordRequest(BaseModel):
+    new_password: str = Field(min_length=8, max_length=128)
 
 
 class TokenResponse(BaseModel):

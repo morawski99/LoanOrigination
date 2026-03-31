@@ -24,6 +24,7 @@ from app.models.loan_estimate import (
     SECTION_TOLERANCE,
 )
 from app.models.condition import Condition, ConditionType, ConditionStatus
+from app.models.underwriting_decision import UnderwritingDecision, UnderwritingDecisionType
 from app.models.closing import (
     ClosingDisclosure,
     ClosingDisclosureFee,
@@ -34,6 +35,18 @@ from app.models.closing import (
     WireInstruction,
     FundingStatus,
     FundingStatusType,
+)
+from app.models.hmda_record import (
+    HMDARecord,
+    HMDAActionTaken,
+    HMDADenialReason,
+    HMDAValidationStatus,
+)
+from app.models.adverse_action import (
+    AdverseActionNotice,
+    AdverseActionType,
+    AdverseActionReasonCode,
+    AdverseActionStatus,
 )
 
 __all__ = [
@@ -90,4 +103,14 @@ __all__ = [
     "WireInstruction",
     "FundingStatus",
     "FundingStatusType",
+    "UnderwritingDecision",
+    "UnderwritingDecisionType",
+    "HMDARecord",
+    "HMDAActionTaken",
+    "HMDADenialReason",
+    "HMDAValidationStatus",
+    "AdverseActionNotice",
+    "AdverseActionType",
+    "AdverseActionReasonCode",
+    "AdverseActionStatus",
 ]

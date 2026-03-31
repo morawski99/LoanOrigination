@@ -9,8 +9,12 @@ import type {
   ConditionUpdatePayload,
   AUSResult,
   AUSResultCreatePayload,
+  UnderwritingQueueItem,
+  UnderwritingQueueStats,
+  UnderwritingDecisionPayload,
+  UnderwritingDecision,
 } from "@/types/loan";
-import type { UserResponse } from "@/types/user";
+import type { UserResponse, UserCreatePayload, UserUpdatePayload } from "@/types/user";
 import type {
   ClosingDisclosure,
   CDListItem,
@@ -464,6 +468,52 @@ export async function getAssignableUsers(role?: string): Promise<UserResponse[]>
   return response.data;
 }
 
+export interface UsersQueryParams {
+  skip?: number;
+  limit?: number;
+  role?: string;
+  is_active?: boolean;
+  search?: string;
+}
+
+export async function getUsers(
+  params?: UsersQueryParams
+): Promise<PaginatedResponse<UserResponse>> {
+  const response: AxiosResponse<PaginatedResponse<UserResponse>> =
+    await apiClient.get("/users", { params });
+  return response.data;
+}
+
+export async function createUser(
+  data: UserCreatePayload
+): Promise<UserResponse> {
+  const response: AxiosResponse<UserResponse> = await apiClient.post(
+    "/users",
+    data
+  );
+  return response.data;
+}
+
+export async function updateUser(
+  userId: string,
+  data: UserUpdatePayload
+): Promise<UserResponse> {
+  const response: AxiosResponse<UserResponse> = await apiClient.patch(
+    `/users/${userId}`,
+    data
+  );
+  return response.data;
+}
+
+export async function resetUserPassword(
+  userId: string,
+  newPassword: string
+): Promise<void> {
+  await apiClient.post(`/users/${userId}/reset-password`, {
+    new_password: newPassword,
+  });
+}
+
 // ─── Loan Estimates ──────────────────────────────────────────────────────────
 
 export async function getLoanEstimates(
@@ -708,6 +758,63 @@ export async function getDocumentDownloadUrl(
   return response.data;
 }
 
+// ─── Underwriting ─────────────────────────────────────────────────────────────
+
+export interface UnderwritingQueryParams {
+  skip?: number;
+  limit?: number;
+  status?: string;
+  loan_type?: string;
+  assigned_underwriter_id?: string;
+  unassigned_only?: boolean;
+  search?: string;
+}
+
+export async function getUnderwritingQueue(
+  params?: UnderwritingQueryParams
+): Promise<PaginatedResponse<UnderwritingQueueItem>> {
+  const response: AxiosResponse<PaginatedResponse<UnderwritingQueueItem>> =
+    await apiClient.get("/underwriting/queue", { params });
+  return response.data;
+}
+
+export async function getUnderwritingStats(): Promise<UnderwritingQueueStats> {
+  const response: AxiosResponse<UnderwritingQueueStats> =
+    await apiClient.get("/underwriting/queue/stats");
+  return response.data;
+}
+
+export async function assignUnderwriter(
+  loanId: string,
+  underwriterId: string | null
+): Promise<Loan> {
+  const response: AxiosResponse<Loan> = await apiClient.post(
+    `/underwriting/${loanId}/assign`,
+    { underwriter_id: underwriterId }
+  );
+  return response.data;
+}
+
+export async function createUnderwritingDecision(
+  loanId: string,
+  data: UnderwritingDecisionPayload
+): Promise<UnderwritingDecision> {
+  const response: AxiosResponse<UnderwritingDecision> = await apiClient.post(
+    `/underwriting/${loanId}/decision`,
+    data
+  );
+  return response.data;
+}
+
+export async function getUnderwritingDecisions(
+  loanId: string
+): Promise<UnderwritingDecision[]> {
+  const response: AxiosResponse<UnderwritingDecision[]> = await apiClient.get(
+    `/underwriting/${loanId}/decisions`
+  );
+  return response.data;
+}
+
 // ─── Closing: Closing Disclosures ────────────────────────────────────────────
 
 export async function getClosingDisclosures(loanId: string): Promise<CDListItem[]> {
@@ -860,6 +967,104 @@ export async function upsertFundingStatus(
     `/loans/${loanId}/closing/funding`,
     data
   );
+  return response.data;
+}
+
+// ─── Compliance ──────────────────────────────────────────────────────────────
+
+import type {
+  ComplianceDashboardStats,
+  HMDARecord,
+  HMDAValidationResult,
+  AdverseActionNotice,
+  AdverseActionCreatePayload,
+  TRIDExceptionItem,
+} from "@/types/compliance";
+
+export async function getComplianceDashboard(): Promise<ComplianceDashboardStats> {
+  const response: AxiosResponse<ComplianceDashboardStats> =
+    await apiClient.get("/compliance/dashboard");
+  return response.data;
+}
+
+export interface HMDAQueryParams {
+  skip?: number;
+  limit?: number;
+  validation_status?: string;
+  action_taken?: string;
+  activity_year?: number;
+  search?: string;
+}
+
+export async function getHMDARecords(
+  params?: HMDAQueryParams
+): Promise<PaginatedResponse<HMDARecord>> {
+  const response: AxiosResponse<PaginatedResponse<HMDARecord>> =
+    await apiClient.get("/compliance/hmda", { params });
+  return response.data;
+}
+
+export async function syncHMDARecords(
+  activityYear: number
+): Promise<{ created: number; updated: number }> {
+  const response = await apiClient.post("/compliance/hmda/sync", null, {
+    params: { activity_year: activityYear },
+  });
+  return response.data;
+}
+
+export async function validateHMDARecord(
+  loanId: string
+): Promise<HMDAValidationResult> {
+  const response: AxiosResponse<HMDAValidationResult> = await apiClient.post(
+    `/compliance/hmda/${loanId}/validate`
+  );
+  return response.data;
+}
+
+export interface AdverseActionQueryParams {
+  skip?: number;
+  limit?: number;
+  status?: string;
+  overdue_only?: boolean;
+  search?: string;
+}
+
+export async function getAdverseActions(
+  params?: AdverseActionQueryParams
+): Promise<PaginatedResponse<AdverseActionNotice>> {
+  const response: AxiosResponse<PaginatedResponse<AdverseActionNotice>> =
+    await apiClient.get("/compliance/adverse-actions", { params });
+  return response.data;
+}
+
+export async function createAdverseAction(
+  loanId: string,
+  data: AdverseActionCreatePayload
+): Promise<AdverseActionNotice> {
+  const response: AxiosResponse<AdverseActionNotice> = await apiClient.post(
+    `/compliance/${loanId}/adverse-action`,
+    data
+  );
+  return response.data;
+}
+
+export async function updateAdverseAction(
+  noticeId: string,
+  data: Partial<{ status: string; sent_date: string; delivery_method: string; notes: string }>
+): Promise<AdverseActionNotice> {
+  const response: AxiosResponse<AdverseActionNotice> = await apiClient.patch(
+    `/compliance/adverse-actions/${noticeId}`,
+    data
+  );
+  return response.data;
+}
+
+export async function getTRIDExceptions(
+  params?: { skip?: number; limit?: number }
+): Promise<PaginatedResponse<TRIDExceptionItem>> {
+  const response: AxiosResponse<PaginatedResponse<TRIDExceptionItem>> =
+    await apiClient.get("/compliance/trid-exceptions", { params });
   return response.data;
 }
 

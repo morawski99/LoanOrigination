@@ -209,3 +209,54 @@ export interface LoanUpdatePayload {
   assigned_underwriter_id?: string;
   mismo_data?: Record<string, unknown>;
 }
+
+// ─── Underwriting ─────────────────────────────────────────────────────────────
+
+export type UnderwritingDecisionType =
+  | "Approved"
+  | "ConditionalApproval"
+  | "Suspended"
+  | "Declined";
+
+export interface UnderwritingQueueItem {
+  id: string;
+  loan_number: string;
+  status: LoanStatus;
+  loan_amount: number;
+  loan_purpose_type: LoanPurposeType;
+  loan_type: LoanType;
+  property_city: string;
+  property_state: string;
+  created_at: string;
+  primary_borrower_name?: string;
+  assigned_underwriter_name?: string;
+  assigned_underwriter_id?: string;
+  days_in_status?: number;
+  latest_aus_finding?: string;
+  latest_aus_system?: string;
+  conditions_open: number;
+  conditions_total: number;
+}
+
+export interface UnderwritingQueueStats {
+  total_in_queue: number;
+  unassigned_count: number;
+  avg_days_in_status?: number;
+  by_status: Record<string, number>;
+}
+
+export interface UnderwritingDecisionPayload {
+  decision_type: UnderwritingDecisionType;
+  notes?: string;
+  conditions?: ConditionCreatePayload[];
+}
+
+export interface UnderwritingDecision {
+  id: string;
+  loan_id: string;
+  decision_type: UnderwritingDecisionType;
+  decided_by_id?: string;
+  notes?: string;
+  decided_at: string;
+  created_at: string;
+}
