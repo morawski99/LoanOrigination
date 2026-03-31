@@ -18,6 +18,9 @@ const UnderwritingPage = lazy(
 const ClosingPage = lazy(() => import("@/features/closing/ClosingPage"));
 const ReportsPage = lazy(() => import("@/features/reports/ReportsPage"));
 const AdminPage = lazy(() => import("@/features/admin/AdminPage"));
+const CompliancePage = lazy(
+  () => import("@/features/compliance/CompliancePage")
+);
 
 function LoadingFallback() {
   return (
@@ -92,6 +95,14 @@ export const router = createBrowserRouter([
     element: (
       <Suspense fallback={<LoadingFallback />}>
         <ClosingPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/compliance",
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <CompliancePage />
       </Suspense>
     ),
   },

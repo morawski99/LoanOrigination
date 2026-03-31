@@ -284,6 +284,7 @@ export default function PipelinePage() {
             { href: "/pipeline", label: "Pipeline" },
             { href: "/underwriting", label: "Underwriting" },
             { href: "/closing", label: "Closing" },
+            { href: "/compliance", label: "Compliance" },
             { href: "/reports", label: "Reports" },
             { href: "/admin", label: "Admin" },
           ].map(({ href, label }) => (
